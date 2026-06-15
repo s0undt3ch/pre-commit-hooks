@@ -53,6 +53,6 @@
 
 - id: system-tool
   name: Run a system tool
-  description: Run any PATH-installed tool via run-tool.sh (tool + args supplied by the consumer)
+  description: 'Run any PATH-installed tool via run-tool.sh (tool + args supplied by the consumer; set pass_filenames: false for tools that manage their own file selection)'
   entry: hooks/run-tool.sh
   language: script

@@ -1,0 +1,184 @@
+# pre-commit-wrappers — Design
+
+**Date:** 2026-06-15
+**Status:** Approved (pending spec review)
+
+## Purpose
+
+A reusable pre-commit hook repository whose hooks run the **system-installed**
+version of each tool — pinned via [mise](https://mise.jdx.dev) in the consuming
+repo — instead of pulling a Docker image or compiling the tool from source on a
+cold cache. Every hook accepts an `--exit-zero` escape hatch so that a missing
+tool degrades to a warning (exit 0) rather than blocking the commit.
+
+### Why this repo exists — one version, no drift
+
+The core problem it solves is **version drift**. A conventional pre-commit setup
+pins each tool *twice*: once in `.pre-commit-config.yaml` (the hook repo's
+`rev:`, or `additional_dependencies`) and once in `mise.toml` for every other
+context that uses the tool (CI, local dev, `mise run` tasks). Those two pins
+drift apart: bump `mise.toml` to gitleaks 8.x and the upstream hook silently
+keeps gating commits with the 7.x it compiled/pulled for its own `rev:` — so the
+version that guards your commits is no longer the version you actually ship and
+run everywhere else.
+
+Running the **system binary** collapses both pins into a single source of truth:
+`mise.toml`. The hook carries no version of its own, so there is nothing to
+drift. Bump the tool in `mise.toml` and the hook, CI, and local dev all move in
+lockstep automatically.
+
+### No Docker — by design
+
+This repository exists specifically to **avoid Docker**. Upstream hooks such as
+`koalaman/shellcheck-precommit` (`language: docker_image`) need a Docker daemon
+and a registry pull — unavailable on hardened CI runners and wasteful when the
+exact pinned binary is already on `PATH`. Others (`rhysd/actionlint`,
+`gitleaks/gitleaks`) default to `language: golang`, which compiles the tool from
+source through the Go toolchain on every cold cache. None of the hooks here use
+Docker or source-compilation; they call the system binary directly. This is
+stated plainly in the README.
+
+## Components
+
+### 1. `run-tool.sh` — generic forwarder (shell hooks)
+
+A single Bash script backing every thin "run the system binary" hook. Invoked
+as:
+
+```
+run-tool.sh <tool> [default-args...]      # + consumer args + filenames (appended by pre-commit)
+```
+
+Behaviour:
+
+1. The **first positional argument** is the tool name.
+2. Scan **all remaining arguments**; drop any literal `--exit-zero` token
+   (wherever it appears) and set an `exit_zero` flag. Every other argument is
+   forwarded verbatim, in order.
+3. If `command -v <tool>` fails (tool not on `PATH`):
+   - `--exit-zero` given → print a warning to stderr and `exit 0`.
+   - otherwise → print an error to stderr naming the tool and suggesting it be
+     installed (e.g. via mise) and `exit 1`.
+4. If **no forwarded arguments remain** (e.g. a file-based hook that prek
+   filtered down to nothing) → `exit 0` quietly without invoking the tool.
+5. Otherwise `exec "<tool>" "${rest[@]}"` so the tool's own exit status
+   propagates unchanged.
+
+`set -euo pipefail`. `--exit-zero` is owned by this convention and only ever
+affects the **missing-tool** case — it never suppresses a real non-zero exit
+from a tool that did run.
+
+### 2. `pin-github-actions.py` — standalone Python tool
+
+Ported as-is from the reference repo (`toolr/.pre-commit-hooks/pin-github-actions.py`).
+It pins GitHub Action `uses:` refs to commit SHAs and verifies already-pinned
+refs against their `# <tag>` comment, using the system `gh` CLI. It already
+implements the `--exit-zero` convention (downgrades a missing `gh` from a hard
+error to a warning + exit 0). Stdlib only at runtime. Not a forwarder — it owns
+its own logic, so it is its own script rather than going through `run-tool.sh`.
+
+### 3. `.pre-commit-hooks.yaml` — hook manifest
+
+Defines four hook ids, all `language: script`. Sensible defaults live here so
+the hooks "just work"; consumers append `args:` (e.g. `[--exit-zero]`), which
+pre-commit places after the defaults — `run-tool.sh` strips `--exit-zero` from
+anywhere in the line.
+
+| id | entry | other fields |
+|----|-------|--------------|
+| `actionlint` | `run-tool.sh actionlint` | `types: [yaml]`, `files: ^\.github/workflows/` |
+| `shellcheck` | `run-tool.sh shellcheck` | `types: [shell]`, `exclude: '\.(zsh\|fish)$'` |
+| `gitleaks` | `run-tool.sh gitleaks git --pre-commit --redact --staged --verbose` | `name: Detect hardcoded secrets`, `pass_filenames: false` |
+| `pin-github-actions` | `pin-github-actions.py` | `files:` workflows / composite actions / root `action.yml` |
+
+The `gitleaks` entry, `name`/`description`, and `pass_filenames: false` match
+the upstream `gitleaks/gitleaks` `.pre-commit-hooks.yaml` exactly (only the
+indirection through `run-tool.sh` differs).
+
+## Repository layout
+
+```
+.pre-commit-hooks.yaml        # hook manifest (consumed by other repos)
+run-tool.sh                   # generic forwarder (executable, +x)
+pin-github-actions.py         # python tool (executable, +x)
+README.md
+LICENSE                       # already present
+pyproject.toml                # dev tooling (pytest) via uv; runtime is stdlib-only
+mise.toml                     # dogfood: pins the tools this repo's own hooks need
+.pre-commit-config.yaml       # dogfood: this repo runs its own hooks
+tests/
+  test_pin_github_actions.py  # ported verbatim, _HOOK_PATH repointed
+  test_run_tool.py            # new — drives run-tool.sh via subprocess
+.github/workflows/ci.yml      # mise install + prek run --all-files + pytest
+```
+
+## Testing
+
+One test runner — `uv run pytest` — covers both the Python tool and the shell
+wrapper, so CI has a single test step and the repo needs no second test
+framework (no bats/shellspec, no extra mise entry).
+
+### `pin-github-actions.py`
+
+`tests/test_pin_github_actions.py` is the reference suite copied over, with
+`_HOOK_PATH` repointed at this repo's `pin-github-actions.py`. It loads the
+standalone script via `importlib.util.spec_from_file_location` and never touches
+the network: per-line `verify_action_line` tests inject a fake resolver;
+`process_file` / cache tests stub `subprocess.run`; `main()` tests monkeypatch
+`check_gh_cli`. All existing cases carry over unchanged (doctored SHA, repointed
+tag, transient-vs-404 classification, memoisation, missing-gh hard error,
+`--exit-zero` softening).
+
+### `run-tool.sh`
+
+`tests/test_run_tool.py` drives the **real** script through `subprocess`. A
+fixture builds a `tmp_path/bin` containing tiny fake executables (a stub that
+records its argv to a file and exits with a chosen code), prepends it to `PATH`,
+and runs `run-tool.sh` under that environment. For missing-tool cases `PATH` is
+pointed at a directory without the tool.
+
+| Test | Asserts |
+|------|---------|
+| tool present, exits 0 | wrapper exits 0; forwards args verbatim and in order |
+| tool present, exits 3 | wrapper propagates exit 3 |
+| `--exit-zero` + tool present that fails | tool still runs; its non-zero code propagates |
+| `--exit-zero` stripped | fake tool's recorded argv contains no `--exit-zero` |
+| tool missing, no `--exit-zero` | exit 1; stderr names the tool / suggests installing it |
+| tool missing, `--exit-zero` | exit 0; warning on stderr |
+| only tool name, no forwarded args | exit 0; tool never invoked |
+| default args + filenames | `run-tool.sh faketool a b` forwards `a b` in order |
+
+## Dogfooding & CI
+
+- **`mise.toml`** pins the tools this repo's own hooks need so the README's
+  install instructions are exercised, not aspirational: `python`, `uv`, `prek`,
+  `actionlint`, `shellcheck`, `gitleaks`, and `gh` (for `pin-github-actions`).
+- **`.pre-commit-config.yaml`** wires this repo's hooks against itself
+  (`repo: local`, or `repo: .`), so `run-tool.sh`, the workflow YAML, and shell
+  scripts are all linted/scanned by the very hooks being shipped.
+- **`.github/workflows/ci.yml`** installs mise (`jdx/mise-action`), runs
+  `mise install`, then `prek run --all-files` and `uv run pytest`. The
+  `pin-github-actions` hook needs `gh` auth, so the job exports
+  `GH_TOKEN: ${{ github.token }}`. All `uses:` refs in this workflow are
+  themselves SHA-pinned so the dogfooded `pin-github-actions` hook passes.
+
+## README contents
+
+1. What & why — **one version, no drift** (single source of truth in
+   `mise.toml`), system tools, **no Docker**, `--exit-zero` escape hatch.
+2. Available hooks table (id → tool → what it needs on `PATH`).
+3. **Installing the tools with mise** — per-tool `mise use` lines plus a
+   copy-paste `[tools]` block for `mise.toml`.
+4. **Using the hooks with prek (and pre-commit)** — a `repos:` snippet pinned to
+   a `rev:` release tag, with a note on choosing/upgrading the tag.
+5. **The `--exit-zero` escape hatch** — when and why to use it (tool-less or
+   gh-less contributors; advisory/best-effort runs), shown as per-hook `args:`.
+
+## Out of scope (YAGNI)
+
+- Per-tool binary-path environment overrides (e.g. `ACTIONLINT_BIN`).
+- A shared shell library (ruled out — the repo deliberately mixes Python and
+  shell, so a shell lib cannot span both, and the only shared shell logic lives
+  in the single `run-tool.sh` already).
+- Wrapping tools not yet in use.
+```

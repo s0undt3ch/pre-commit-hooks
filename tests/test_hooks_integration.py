@@ -1,0 +1,52 @@
+"""End-to-end tests: drive each real tool through hooks/run-tool.sh on a clean
+fixture. Skipped when the tool is not on PATH, so a contributor missing a tool
+just skips that test; CI installs every tool via mise and runs them all."""
+
+from __future__ import annotations
+
+import shutil
+import subprocess
+from pathlib import Path
+
+import pytest
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+_RUN_TOOL = _REPO_ROOT / "hooks" / "run-tool.sh"
+_FILES = _REPO_ROOT / "tests" / "files"
+
+
+def run_tool(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [str(_RUN_TOOL), *args],
+        cwd=_REPO_ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+
+@pytest.mark.skipif(shutil.which("actionlint") is None, reason="actionlint not on PATH")
+def test_actionlint_passes_on_clean_workflow() -> None:
+    result = run_tool("actionlint", str(_FILES / "clean_workflow.yml"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("shellcheck") is None, reason="shellcheck not on PATH")
+def test_shellcheck_passes_on_clean_script() -> None:
+    result = run_tool("shellcheck", str(_FILES / "clean.sh"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("sqlfluff") is None, reason="sqlfluff not on PATH")
+def test_sqlfluff_lint_passes_on_clean_sql() -> None:
+    result = run_tool(
+        "sqlfluff", "lint", "--processes", "0", "--disable-progress-bar",
+        str(_FILES / "clean.sql"),
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("actionlint") is None, reason="actionlint not on PATH")
+def test_run_tool_exit_zero_skips_when_tool_truly_missing() -> None:
+    # Sanity: --exit-zero path against a guaranteed-missing tool still exits 0.
+    result = run_tool("no-such-tool-xyzzy-42", "--exit-zero", str(_FILES / "clean.sh"))
+    assert result.returncode == 0

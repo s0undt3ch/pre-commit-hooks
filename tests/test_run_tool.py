@@ -115,3 +115,22 @@ def test_default_args_then_files_preserve_order(bindir: Path) -> None:
     result = run(["faketool", "git", "--staged", "f1", "f2"], bindir)
     assert result.returncode == 0
     assert logged_argv(log) == ["git", "--staged", "f1", "f2"]
+
+
+def test_missing_tool_with_no_args_still_hard_errors(bindir: Path) -> None:
+    # The PATH check fires before the empty-args no-op, so a missing tool is a
+    # hard error even when there is nothing to forward.
+    result = run([MISSING], bindir)
+    assert result.returncode == 1
+    assert "not found on PATH" in result.stderr
+
+
+def test_exit_zero_must_follow_the_tool_name(bindir: Path) -> None:
+    # --exit-zero is only meaningful after the tool name. Placed first it IS
+    # taken as the tool name, so it resolves as a missing tool (hard error),
+    # not as the soften-missing-tool flag.
+    log = make_tool(bindir, exit_code=0)  # a real faketool exists, but is not arg 1
+    result = run(["--exit-zero", "faketool", "x"], bindir)
+    assert result.returncode == 1
+    assert "not found on PATH" in result.stderr
+    assert not log.exists()  # faketool was never invoked

@@ -8,8 +8,11 @@ shellcheck = "latest"
 gitleaks = "latest"
 # gh resolves Action SHAs for the pin-github-actions hook.
 gh = "latest"
-# NOTE: sqlfluff is NOT here — it's a pure-Python tool in the uv dev group
-# (see Step 2), installed only for the hook integration tests.
+ruff = "latest"
+typos = "latest"
+rumdl = "latest"
+# NOTE: sqlfluff/codespell/mypy are NOT here — they're pure-Python tools in the uv dev group
+# (see pyproject.toml), installed only for the hook integration tests.
 
 [env]
 # Auto-create and activate a project virtualenv; uv seeds it with pip.

@@ -39,7 +39,7 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 | `uv-lock` | `uv` | Keep uv.lock in sync with pyproject |
 | `sqlfluff-lint` | `sqlfluff` | Lint SQL files |
 | `sqlfluff-fix` | `sqlfluff` | Auto-fix SQL lint errors |
-| `system-tool` | _(you choose)_ | Run any PATH tool via the generic wrapper |
+| `system-tool` | *(you choose)* | Run any PATH tool via the generic wrapper |
 
 ## 1. Install the tools with mise
 

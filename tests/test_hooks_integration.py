@@ -39,7 +39,11 @@ def test_shellcheck_passes_on_clean_script() -> None:
 @pytest.mark.skipif(shutil.which("sqlfluff") is None, reason="sqlfluff not on PATH")
 def test_sqlfluff_lint_passes_on_clean_sql() -> None:
     result = run_tool(
-        "sqlfluff", "lint", "--processes", "0", "--disable-progress-bar",
+        "sqlfluff",
+        "lint",
+        "--processes",
+        "0",
+        "--disable-progress-bar",
         str(_FILES / "clean.sql"),
     )
     assert result.returncode == 0, result.stdout + result.stderr
@@ -60,7 +64,9 @@ def test_ruff_check_passes_on_clean_py() -> None:
 
 @pytest.mark.skipif(shutil.which("ruff") is None, reason="ruff not on PATH")
 def test_ruff_format_check_passes_on_clean_py() -> None:
-    result = run_tool("ruff", "format", "--check", "--force-exclude", str(_FILES / "clean_py.py"))
+    result = run_tool(
+        "ruff", "format", "--check", "--force-exclude", str(_FILES / "clean_py.py")
+    )
     assert result.returncode == 0, result.stdout + result.stderr
 
 
@@ -85,6 +91,9 @@ def test_codespell_passes_on_clean_fixture() -> None:
 @pytest.mark.skipif(shutil.which("mypy") is None, reason="mypy not on PATH")
 def test_mypy_passes_on_clean_py() -> None:
     result = run_tool(
-        "mypy", "--ignore-missing-imports", "--scripts-are-modules", str(_FILES / "clean_py.py")
+        "mypy",
+        "--ignore-missing-imports",
+        "--scripts-are-modules",
+        str(_FILES / "clean_py.py"),
     )
     assert result.returncode == 0, result.stdout + result.stderr

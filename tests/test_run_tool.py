@@ -34,11 +34,7 @@ def make_tool(bindir: Path, name: str = "faketool", *, exit_code: int = 0) -> Pa
 
     Returns the path to the argv log file (one argument per line)."""
     log = bindir / f"{name}.argv"
-    script = (
-        "#!/usr/bin/env bash\n"
-        f'printf "%s\\n" "$@" > "{log}"\n'
-        f"exit {exit_code}\n"
-    )
+    script = f'#!/usr/bin/env bash\nprintf "%s\\n" "$@" > "{log}"\nexit {exit_code}\n'
     p = bindir / name
     p.write_text(script)
     p.chmod(p.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
@@ -73,7 +69,9 @@ def test_present_tool_propagates_nonzero_exit(bindir: Path) -> None:
 def test_exit_zero_does_not_mask_a_running_tools_failure(bindir: Path) -> None:
     log = make_tool(bindir, exit_code=4)
     result = run(["faketool", "--exit-zero", "x"], bindir)
-    assert result.returncode == 4  # tool ran and failed; --exit-zero only guards a MISSING tool
+    assert (
+        result.returncode == 4
+    )  # tool ran and failed; --exit-zero only guards a MISSING tool
     assert logged_argv(log) == ["x"]  # --exit-zero stripped
 
 

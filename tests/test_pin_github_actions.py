@@ -157,7 +157,9 @@ def test_repointed_tag_is_caught(
 
 
 @pytest.fixture
-def gh_stub(hook: ModuleType, monkeypatch: pytest.MonkeyPatch) -> Callable[[str], list[list[str]]]:
+def gh_stub(
+    hook: ModuleType, monkeypatch: pytest.MonkeyPatch
+) -> Callable[[str], list[list[str]]]:
     """Factory: stub the ``gh`` subprocess so the real (cached)
     ``get_commit_sha`` resolves every ref to the given SHA.
 
@@ -213,7 +215,9 @@ def test_process_file_verifies_existing_pins(
 
 
 @pytest.fixture
-def gh_fail_stub(hook: ModuleType, monkeypatch: pytest.MonkeyPatch) -> Callable[[int, str], None]:
+def gh_fail_stub(
+    hook: ModuleType, monkeypatch: pytest.MonkeyPatch
+) -> Callable[[int, str], None]:
     """Factory: stub ``gh`` to fail with a given returncode + stderr, so the
     real ``get_commit_sha`` exercises its error-classification path."""
 
@@ -277,7 +281,9 @@ def test_get_commit_sha_is_memoised(
     assert len(calls) == 1
 
 
-def test_missing_gh_is_a_hard_error(hook: ModuleType, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_missing_gh_is_a_hard_error(
+    hook: ModuleType, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Without ``gh`` and without ``--exit-zero``, the hook hard-errors (exit
     2) rather than silently passing as if everything verified."""
     monkeypatch.setattr(hook, "check_gh_cli", lambda: False)
@@ -285,8 +291,12 @@ def test_missing_gh_is_a_hard_error(hook: ModuleType, monkeypatch: pytest.Monkey
     assert hook.main() == 2
 
 
-def test_exit_zero_softens_missing_gh(hook: ModuleType, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_exit_zero_softens_missing_gh(
+    hook: ModuleType, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """``--exit-zero`` downgrades a missing ``gh`` to a warning + exit 0."""
     monkeypatch.setattr(hook, "check_gh_cli", lambda: False)
-    monkeypatch.setattr(hook.sys, "argv", ["pin-github-actions", "--exit-zero", "x.yml"])
+    monkeypatch.setattr(
+        hook.sys, "argv", ["pin-github-actions", "--exit-zero", "x.yml"]
+    )
     assert hook.main() == 0

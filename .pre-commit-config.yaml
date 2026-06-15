@@ -28,3 +28,50 @@ repos:
         entry: hooks/pin-github-actions.py
         language: script
         files: ^(\.github/(workflows|actions/[^/]+)/.*\.ya?ml|action\.ya?ml)$
+
+      - id: ruff-check
+        name: ruff check
+        entry: hooks/run-tool.sh ruff check --force-exclude
+        language: script
+        types_or: [python, pyi, jupyter]
+        require_serial: true
+        exclude: ^hooks/pin-github-actions\.py$
+      - id: ruff-format
+        name: ruff format
+        entry: hooks/run-tool.sh ruff format --force-exclude
+        language: script
+        types_or: [python, pyi, jupyter]
+        require_serial: true
+        exclude: ^hooks/pin-github-actions\.py$
+      - id: typos
+        name: typos
+        entry: hooks/run-tool.sh typos --write-changes --force-exclude
+        language: script
+        types: [text]
+        exclude: ^(docs/|uv\.lock$)
+      - id: rumdl
+        name: rumdl
+        entry: hooks/run-tool.sh rumdl check
+        language: script
+        types: [markdown]
+        require_serial: true
+        exclude: ^docs/
+      - id: codespell
+        name: codespell
+        entry: hooks/run-tool.sh codespell
+        language: script
+        types: [text]
+        exclude: ^(docs/|uv\.lock$)
+      - id: mypy
+        name: mypy
+        entry: hooks/run-tool.sh mypy --ignore-missing-imports --scripts-are-modules
+        language: script
+        types_or: [python, pyi]
+        require_serial: true
+        exclude: ^hooks/pin-github-actions\.py$
+      - id: uv-lock
+        name: uv-lock
+        entry: hooks/run-tool.sh uv lock
+        language: script
+        files: ^(uv\.lock|pyproject\.toml|uv\.toml)$
+        pass_filenames: false

@@ -1,0 +1,19 @@
+[tools]
+python = "3.13"
+uv = "latest"
+prek = "latest"
+# These back the pre-commit hooks (run the PATH binary, not Docker / source).
+actionlint = "latest"
+shellcheck = "latest"
+gitleaks = "latest"
+# gh resolves Action SHAs for the pin-github-actions hook.
+gh = "latest"
+# NOTE: sqlfluff is NOT here — it's a pure-Python tool in the uv dev group
+# (see Step 2), installed only for the hook integration tests.
+
+[env]
+# Auto-create and activate a project virtualenv; uv seeds it with pip.
+_.python.venv = { path = ".venv", create = true, uv_create_args = ['--seed'] }
+
+[settings]
+python.uv_venv_auto = true

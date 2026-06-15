@@ -67,7 +67,7 @@ Add this repo to your `.pre-commit-config.yaml`, pinned to a release tag:
 
 ```yaml
 repos:
-  - repo: https://github.com/s0undt3ch/pre-commit-wrappers
+  - repo: https://github.com/s0undt3ch/pre-commit-hooks
     rev: v1.0.0   # pin to a released tag; bump deliberately
     hooks:
       - id: actionlint

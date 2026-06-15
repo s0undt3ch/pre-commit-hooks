@@ -1,0 +1,35 @@
+{
+  // Renovate configuration. JSON5 (not JSON) so the config can carry comments
+  // and trailing commas.
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:recommended",
+    // Enable Renovate's pre-commit manager so it also keeps the `rev:` pins of
+    // pre-commit hooks up to date (the manager is disabled by default).
+    ":enablePreCommitDependencies",
+    // Run dependency updates once a week.
+    "schedule:weekly",
+  ],
+  vulnerabilityAlerts: {
+    // Security fixes bypass the weekly schedule and open as soon as they land.
+    schedule: ["at any time"],
+  },
+  packageRules: [
+    {
+      // Python project dependencies (pyproject.toml / uv.lock).
+      matchManagers: ["pep621"],
+      groupName: "python dependencies",
+    },
+    {
+      // GitHub Actions pinned in workflows.
+      matchManagers: ["github-actions"],
+      groupName: "github actions",
+    },
+    {
+      // CLI tools pinned in mise.toml.
+      matchManagers: ["mise"],
+      groupName: "mise tools",
+    },
+  ],
+}
+

@@ -108,6 +108,44 @@ script` differ.
 | `shellcheck` | `hooks/run-tool.sh shellcheck` | `ShellCheck` / `Static analysis tool for shell scripts` | `types: [shell]`, `exclude: '\.(zsh\|fish)$'` |
 | `gitleaks` | `hooks/run-tool.sh gitleaks git --pre-commit --redact --staged --verbose` | `Detect hardcoded secrets` / `Detect hardcoded secrets using Gitleaks` | `pass_filenames: false` |
 | `pin-github-actions` | `hooks/pin-github-actions.py` | `Pin & verify GitHub Action SHAs` / `Pin GitHub Action uses: refs to commit SHAs and verify existing pins` | `files:` workflows / composite actions / root `action.yml` |
+| `system-tool` | `hooks/run-tool.sh` | `Run a system tool` / `Run any PATH-installed tool via run-tool.sh (tool name + args supplied by the consumer)` | no defaults; consumer supplies everything |
+
+### 4. `system-tool` — generic escape-hatch hook
+
+A fifth manifest entry with **no tool baked into `entry`** — just
+`entry: hooks/run-tool.sh`. The consumer supplies the tool name and its args via
+the consumer-settable `args:` field, which pre-commit appends after `entry`; so
+the first `args` token lands as `run-tool.sh`'s tool-name argument:
+
+```yaml
+# consumer .pre-commit-config.yaml
+- id: system-tool
+  alias: shfmt                     # distinct name so it can be used more than once
+  name: shfmt
+  args: [shfmt, -d, -i, "2"]       # tool + args; --exit-zero may appear anywhere
+  types: [shell]
+# -> run-tool.sh shfmt -d -i 2 <files>
+```
+
+This needs **no new code** — it reuses `run-tool.sh` verbatim and inherits the
+strip-`--exit-zero` / PATH-check / forward behaviour and its tests. It lets a
+consumer wrap *any* PATH tool without this repo shipping a dedicated hook, and
+the same id can be reused several times via different `alias:` + `args:`.
+
+It also serves as the **prototyping / trial path for new tools**: before opening
+a PR to add a dedicated hook here, a contributor can wrap the candidate tool
+through `system-tool` in their own config and confirm it behaves correctly under
+`run-tool.sh` (PATH resolution, `--exit-zero`, arg/filename forwarding). If it
+works and is broadly useful, *then* promote it to a first-class dedicated hook
+via a PR. So the dedicated hooks and the generic hook are two ends of the same
+mechanism — `system-tool` is where a tool starts; a named hook id is where it
+lands once proven.
+
+**Limitation (documented):** because `run-tool.sh` exits 0 when no arguments
+remain after the tool name, the generic hook needs at least one arg or filename.
+A bare argument-less command (`args: [mytool]` with `pass_filenames: false`)
+would no-op. Every real use passes a subcommand/flag or filenames, so this is a
+non-issue in practice — but it is called out in the README.
 
 Upstream-matching details:
 
@@ -211,6 +249,9 @@ pointed at a directory without the tool.
    a `rev:` release tag, with a note on choosing/upgrading the tag.
 5. **The `--exit-zero` escape hatch** — when and why to use it (tool-less or
    gh-less contributors; advisory/best-effort runs), shown as per-hook `args:`.
+6. **The generic `system-tool` hook** — wrap any PATH tool yourself; includes the
+   "trial a tool before proposing a dedicated hook" workflow and the
+   needs-at-least-one-arg limitation.
 
 ## Out of scope (YAGNI)
 
@@ -219,4 +260,14 @@ pointed at a directory without the tool.
   shell, so a shell lib cannot span both, and the only shared shell logic lives
   in the single `run-tool.sh` already).
 - Wrapping tools not yet in use.
+- **Terraform and Go hooks — deferred (not rejected).** mise (incl. its aqua
+  backend) can install `terraform`/`tflint`/`golangci-lint`/`go`, and the
+  forwarder-compatible hooks (`terraform fmt -check -diff -recursive`,
+  `tflint --recursive`, `go vet ./...`, `go build ./...`, `golangci-lint run`,
+  all `pass_filenames: false`) would slot into `run-tool.sh` cleanly. The ones
+  that do **not** fit — `terraform validate` (needs `init` + per-module logic)
+  and `gofmt` / `go mod tidy` (need "would-change" wrapper logic) — are the
+  reason upstream ships bespoke per-tool scripts, which is exactly what the
+  single-wrapper design avoids. Revisit the forwarder-compatible subset in a
+  follow-up once the core four hooks ship.
 ```

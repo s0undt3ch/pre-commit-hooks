@@ -1,0 +1,58 @@
+---
+# Hooks that run the system-installed (mise-pinned) tool from PATH — no Docker,
+# no from-source compile. The tool's version lives in the consumer's mise.toml
+# (single source of truth), so it never drifts from a hook's own pin.
+# See README.md for usage with prek / pre-commit and mise.
+
+- id: actionlint
+  name: Lint GitHub Actions workflow files
+  description: Runs system-installed actionlint to lint GitHub Actions workflow files
+  entry: hooks/run-tool.sh actionlint
+  language: script
+  types: [yaml]
+  files: ^\.github/workflows/
+  minimum_pre_commit_version: 3.0.0
+
+- id: shellcheck
+  name: ShellCheck
+  description: Static analysis tool for shell scripts
+  entry: hooks/run-tool.sh shellcheck
+  language: script
+  types: [shell]
+  exclude: '\.(zsh|fish)$'
+
+- id: gitleaks
+  name: Detect hardcoded secrets
+  description: Detect hardcoded secrets using Gitleaks
+  entry: hooks/run-tool.sh gitleaks git --pre-commit --redact --staged --verbose
+  language: script
+  pass_filenames: false
+
+- id: pin-github-actions
+  name: Pin & verify GitHub Action SHAs
+  description: 'Pin GitHub Action uses: refs to commit SHAs and verify existing pins'
+  entry: hooks/pin-github-actions.py
+  language: script
+  files: ^(\.github/(workflows|actions/[^/]+)/.*\.ya?ml|action\.yml)$
+
+- id: sqlfluff-lint
+  name: sqlfluff-lint
+  description: Lints sql files with `SQLFluff`
+  entry: hooks/run-tool.sh sqlfluff lint --processes 0 --disable-progress-bar
+  language: script
+  types: [sql]
+  require_serial: true
+
+- id: sqlfluff-fix
+  name: sqlfluff-fix
+  description: Fixes sql lint errors with `SQLFluff`
+  entry: hooks/run-tool.sh sqlfluff fix --show-lint-violations --processes 0 --disable-progress-bar
+  language: script
+  types: [sql]
+  require_serial: true
+
+- id: system-tool
+  name: Run a system tool
+  description: Run any PATH-installed tool via run-tool.sh (tool + args supplied by the consumer)
+  entry: hooks/run-tool.sh
+  language: script

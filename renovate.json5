@@ -4,12 +4,14 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   extends: [
     "config:recommended",
-    // Enable Renovate's pre-commit manager so it also keeps the `rev:` pins of
-    // pre-commit hooks up to date (the manager is disabled by default).
-    ":enablePreCommitDependencies",
     // Run dependency updates once a week.
     "schedule:weekly",
   ],
+  // Enable Renovate's pre-commit manager (disabled by default) so it also keeps
+  // the `rev:` pins of pre-commit hooks up to date.
+  "pre-commit": {
+    enabled: true,
+  },
   vulnerabilityAlerts: {
     // Security fixes bypass the weekly schedule and open as soon as they land.
     schedule: ["at any time"],

@@ -1,0 +1,15 @@
+[project]
+name = "pre-commit-wrappers"
+version = "0.1.0"
+description = "Pre-commit hooks that run the system (mise-pinned) tool from PATH — no Docker, no drift"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.0",
+    "sqlfluff>=4.2.2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

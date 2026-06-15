@@ -108,6 +108,8 @@ script` differ.
 | `shellcheck` | `hooks/run-tool.sh shellcheck` | `ShellCheck` / `Static analysis tool for shell scripts` | `types: [shell]`, `exclude: '\.(zsh\|fish)$'` |
 | `gitleaks` | `hooks/run-tool.sh gitleaks git --pre-commit --redact --staged --verbose` | `Detect hardcoded secrets` / `Detect hardcoded secrets using Gitleaks` | `pass_filenames: false` |
 | `pin-github-actions` | `hooks/pin-github-actions.py` | `Pin & verify GitHub Action SHAs` / `Pin GitHub Action uses: refs to commit SHAs and verify existing pins` | `files:` workflows / composite actions / root `action.yml` |
+| `sqlfluff-lint` | `hooks/run-tool.sh sqlfluff lint --processes 0 --disable-progress-bar` | `sqlfluff-lint` / `Lints sql files with` `SQLFluff` | `types: [sql]`, `require_serial: true` |
+| `sqlfluff-fix` | `hooks/run-tool.sh sqlfluff fix --show-lint-violations --processes 0 --disable-progress-bar` | `sqlfluff-fix` / `Fixes sql lint errors with` `SQLFluff` | `types: [sql]`, `require_serial: true` |
 | `system-tool` | `hooks/run-tool.sh` | `Run a system tool` / `Run any PATH-installed tool via run-tool.sh (tool name + args supplied by the consumer)` | no defaults; consumer supplies everything |
 
 ### 4. `system-tool` — generic escape-hatch hook
@@ -162,6 +164,26 @@ Upstream-matching details:
   and `pass_filenames: false` exactly.
 - **`pin-github-actions`** is bespoke (no upstream); name/description taken from
   the reference repo's local hook.
+- **`sqlfluff-lint` / `sqlfluff-fix`** mirror `sqlfluff/sqlfluff`'s entries
+  verbatim (including `--processes 0 --disable-progress-bar`, and `fix`'s
+  `--show-lint-violations`), `types: [sql]`, and `require_serial: true`.
+
+  **No `additional_dependencies` — by design.** The upstream hooks use
+  `language: python` and rely on `additional_dependencies` (e.g.
+  `sqlfluff-templater-dbt`, a dbt adapter) to build sqlfluff a private venv.
+  Our `language: script` hooks run whatever `sqlfluff` is **on PATH**, so that
+  mechanism does not apply — and that is the point. The consumer provides
+  `sqlfluff` (and any templater/adapter plugins) through their own environment:
+  - **Plain SQL:** `mise use sqlfluff` (mise's `pipx` backend) is enough.
+  - **dbt projects:** sqlfluff, `sqlfluff-templater-dbt`, and the dbt adapter are
+    already the project's Python dependencies pinned in `uv.lock` (the same deps
+    used to run dbt). mise activates that venv, so the correct `sqlfluff` is on
+    PATH automatically. `uv.lock` is the single source of truth — exactly the
+    anti-drift property `mise.toml` provides for the binary tools, with no
+    second pin in a hook's `additional_dependencies` to fall out of sync.
+
+  This repo does **not** dogfood the sqlfluff hooks (it contains no SQL); they
+  are shipped and documented only.
 
 ## Repository layout
 
@@ -219,6 +241,18 @@ pointed at a directory without the tool.
 | tool missing, `--exit-zero` | exit 0; warning on stderr |
 | only tool name, no forwarded args | exit 0; tool never invoked |
 | default args + filenames | `run-tool.sh faketool a b` forwards `a b` in order |
+
+### Hook integration tests (real tools)
+
+`tests/test_run_tool.py` uses **fake** tools. A second module,
+`tests/test_hooks_integration.py`, drives the **real** tools through
+`run-tool.sh` against clean fixtures under `tests/files/` (a valid workflow
+YAML, a shellcheck-clean script, an ANSI-clean SQL file + `tests/files/.sqlfluff`),
+each `@pytest.mark.skipif` the tool is absent from PATH. The binary tools
+(actionlint, shellcheck) come from `mise.toml`; `sqlfluff` is a **uv dev-group**
+dependency (pure Python, installed only for tests via `uv run pytest`, never for
+normal hook users). A contributor missing a tool skips that test; CI installs
+everything and runs them all.
 
 ## Dogfooding & CI
 

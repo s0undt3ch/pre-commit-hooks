@@ -1,0 +1,30 @@
+---
+minimum_pre_commit_version: 3.0.0
+repos:
+  - repo: local
+    hooks:
+      - id: actionlint
+        name: Lint GitHub Actions workflow files
+        entry: hooks/run-tool.sh actionlint
+        language: script
+        types: [yaml]
+        files: ^\.github/workflows/
+
+      - id: shellcheck
+        name: ShellCheck
+        entry: hooks/run-tool.sh shellcheck
+        language: script
+        types: [shell]
+        exclude: '\.(zsh|fish)$'
+
+      - id: gitleaks
+        name: Detect hardcoded secrets
+        entry: hooks/run-tool.sh gitleaks git --pre-commit --redact --staged --verbose
+        language: script
+        pass_filenames: false
+
+      - id: pin-github-actions
+        name: Pin & verify GitHub Action SHAs
+        entry: hooks/pin-github-actions.py
+        language: script
+        files: ^(\.github/(workflows|actions/[^/]+)/.*\.ya?ml|action\.yml)$

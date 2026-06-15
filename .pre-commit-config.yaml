@@ -35,14 +35,12 @@ repos:
         language: script
         types_or: [python, pyi, jupyter]
         require_serial: true
-        exclude: ^hooks/pin-github-actions\.py$
       - id: ruff-format
         name: ruff format
         entry: hooks/run-tool.sh ruff format --force-exclude
         language: script
         types_or: [python, pyi, jupyter]
         require_serial: true
-        exclude: ^hooks/pin-github-actions\.py$
       - id: typos
         name: typos
         entry: hooks/run-tool.sh typos --write-changes --force-exclude
@@ -68,7 +66,6 @@ repos:
         language: script
         types_or: [python, pyi]
         require_serial: true
-        exclude: ^hooks/pin-github-actions\.py$
       - id: uv-lock
         name: uv-lock
         entry: hooks/run-tool.sh uv lock

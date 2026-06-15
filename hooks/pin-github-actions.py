@@ -12,6 +12,18 @@ import sys
 from collections.abc import Callable
 from functools import lru_cache
 from pathlib import Path
+from typing import TypedDict
+
+
+class ActionLine(TypedDict):
+    """A parsed GitHub Actions ``uses:`` line."""
+
+    indent: str
+    action_path: str
+    ref: str
+    comment: str
+    original_line: str
+    is_pinned: bool
 
 
 class TransientResolutionError(Exception):
@@ -59,7 +71,9 @@ def get_commit_sha(owner: str, repo: str, ref: str) -> str | None:
         )
     except Exception as e:
         # Timeout, gh vanished mid-run, OSError, ... — all transient.
-        raise TransientResolutionError(f"failed to invoke gh for {owner}/{repo}@{ref}: {e}") from e
+        raise TransientResolutionError(
+            f"failed to invoke gh for {owner}/{repo}@{ref}: {e}"
+        ) from e
 
     if result.returncode == 0:
         try:
@@ -94,11 +108,14 @@ def get_latest_release(owner: str, repo: str) -> str | None:
             return data["tag_name"]
         return None
     except Exception as e:
-        print(f"Warning: Failed to fetch latest release for {owner}/{repo}: {e}", file=sys.stderr)
+        print(
+            f"Warning: Failed to fetch latest release for {owner}/{repo}: {e}",
+            file=sys.stderr,
+        )
         return None
 
 
-def parse_action_line(line: str, include_pinned: bool = False) -> dict[str, str] | None:
+def parse_action_line(line: str, include_pinned: bool = False) -> ActionLine | None:
     """Parse a GitHub Actions 'uses' line."""
     # Match: uses: owner/repo@ref or uses: owner/repo/path@ref
     match = re.match(r"(\s*-?\s*uses:\s+)([^/]+/[^@\s]+)@([^\s#]+)(\s*#.*)?", line)
@@ -193,7 +210,7 @@ def verify_action_line(
     return None
 
 
-def pin_action(action_info: dict[str, str], use_latest: bool = False) -> str | None:
+def pin_action(action_info: ActionLine, use_latest: bool = False) -> str | None:
     """Pin an action to its commit SHA."""
     action_path = action_info["action_path"]
     ref = action_info["ref"]
@@ -212,7 +229,9 @@ def pin_action(action_info: dict[str, str], use_latest: bool = False) -> str | N
             print(f"Updating {action_path}@{ref} -> {latest_ref}")
             ref = latest_ref
         else:
-            print(f"Warning: Could not fetch latest release for {action_path}, using current ref")
+            print(
+                f"Warning: Could not fetch latest release for {action_path}, using current ref"
+            )
 
     # Get the commit SHA. A transient resolution failure (rate limit /
     # network / timeout) leaves the ref unpinned for this run rather than
@@ -220,7 +239,10 @@ def pin_action(action_info: dict[str, str], use_latest: bool = False) -> str | N
     try:
         sha = get_commit_sha(owner, repo, ref)
     except TransientResolutionError as e:
-        print(f"Warning: leaving {action_path}@{ref} unpinned this run: {e}", file=sys.stderr)
+        print(
+            f"Warning: leaving {action_path}@{ref} unpinned this run: {e}",
+            file=sys.stderr,
+        )
         return None
     if not sha:
         return None
@@ -325,7 +347,10 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 0
-        print("Error: gh CLI not found; cannot resolve or verify action pins.", file=sys.stderr)
+        print(
+            "Error: gh CLI not found; cannot resolve or verify action pins.",
+            file=sys.stderr,
+        )
         print("Install gh CLI from: https://cli.github.com/", file=sys.stderr)
         return 2
 

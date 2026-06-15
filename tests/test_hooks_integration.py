@@ -45,8 +45,8 @@ def test_sqlfluff_lint_passes_on_clean_sql() -> None:
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-@pytest.mark.skipif(shutil.which("actionlint") is None, reason="actionlint not on PATH")
 def test_run_tool_exit_zero_skips_when_tool_truly_missing() -> None:
     # Sanity: --exit-zero path against a guaranteed-missing tool still exits 0.
+    # No real tool is involved, so this runs unconditionally (no skipif).
     result = run_tool("no-such-tool-xyzzy-42", "--exit-zero", str(_FILES / "clean.sh"))
     assert result.returncode == 0

@@ -42,7 +42,7 @@ Add the tools your chosen hooks need to your project's `mise.toml`:
 actionlint = "latest"
 shellcheck = "latest"
 gitleaks = "latest"
-gh = "latest"        # only needed for pin-github-actions
+gh = "latest"        # only for pin-github-actions (also run `gh auth login`)
 ```
 
 or per tool on the command line:
@@ -141,7 +141,11 @@ which keeps a single source of truth:
 ## Development
 
 ```bash
-mise install          # provision python, uv, prek, and the tools
+mise install          # provision python, uv, prek, and the binary tools
 uv run pytest         # run the test suite
 prek run --all-files  # run this repo's hooks against itself
 ```
+
+The integration tests also exercise `sqlfluff`, which is a `uv` **dev-group**
+dependency (not in `mise.toml`) — `uv run pytest` installs it into the venv that
+mise activates, so it is on `PATH` for the tests but never for normal hook users.

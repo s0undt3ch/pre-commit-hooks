@@ -79,10 +79,23 @@ its own logic, so it is its own script rather than going through `run-tool.sh`.
 
 ### 3. `.pre-commit-hooks.yaml` — hook manifest
 
-Defines four hook ids, all `language: script`. Sensible defaults live here so
-the hooks "just work"; consumers append `args:` (e.g. `[--exit-zero]`), which
-pre-commit places after the defaults — `run-tool.sh` strips `--exit-zero` from
-anywhere in the line.
+Defines four hook ids, all `language: script`.
+
+**Default tool args go in `entry`, never in `args`.** pre-commit lets a consumer
+override a hook's `args:` (and the override *replaces* it wholesale), but it does
+**not** let a consumer override `entry`. pre-commit builds the command as
+`entry` (fixed by us) + `args` (consumer-settable, empty by default) + filenames.
+So baking `git --pre-commit --redact --staged --verbose` into `gitleaks`'s
+`entry` makes those defaults **non-overridable yet still extensible**: a consumer
+who sets `args: [--exit-zero, --report-path, x.json]` gets them *appended* after
+the defaults, not in place of them. (This mirrors upstream `gitleaks/gitleaks`,
+whose own manifest bakes the same four flags into `entry`.) Putting defaults in
+`args:` instead would let a consumer silently drop them — so we never do that.
+
+`run-tool.sh` then strips `--exit-zero` from anywhere in the resulting line and
+forwards the rest. This is why no per-tool thin wrappers are needed: the
+generic wrapper + defaults-in-`entry` already gives non-overridable,
+consumer-extensible defaults.
 
 | id | entry | other fields |
 |----|-------|--------------|
@@ -153,9 +166,13 @@ pointed at a directory without the tool.
 - **`mise.toml`** pins the tools this repo's own hooks need so the README's
   install instructions are exercised, not aspirational: `python`, `uv`, `prek`,
   `actionlint`, `shellcheck`, `gitleaks`, and `gh` (for `pin-github-actions`).
-- **`.pre-commit-config.yaml`** wires this repo's hooks against itself
-  (`repo: local`, or `repo: .`), so `run-tool.sh`, the workflow YAML, and shell
-  scripts are all linted/scanned by the very hooks being shipped.
+- **`.pre-commit-config.yaml`** wires this repo's hooks against itself via
+  `repo: local` entries that point `entry:` directly at `./run-tool.sh` and
+  `./pin-github-actions.py` (mirroring the four manifest hooks), so the wrapper,
+  the workflow YAML, and the shell scripts are all linted/scanned by the very
+  hooks being shipped. A small, deliberate duplication of the manifest entries —
+  it keeps the dogfood self-contained without a circular `repo:` reference to an
+  unreleased tag.
 - **`.github/workflows/ci.yml`** installs mise (`jdx/mise-action`), runs
   `mise install`, then `prek run --all-files` and `uv run pytest`. The
   `pin-github-actions` hook needs `gh` auth, so the job exports

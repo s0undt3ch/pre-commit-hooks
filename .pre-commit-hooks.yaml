@@ -56,3 +56,65 @@
   description: 'Run any PATH-installed tool via run-tool.sh (tool + args supplied by the consumer; set pass_filenames: false for tools that manage their own file selection)'
   entry: hooks/run-tool.sh
   language: script
+
+- id: ruff-check
+  name: ruff check
+  description: Run 'ruff check' for extremely fast Python linting
+  entry: hooks/run-tool.sh ruff check --force-exclude
+  language: script
+  types_or: [python, pyi, jupyter]
+  require_serial: true
+
+- id: ruff-format
+  name: ruff format
+  description: Run 'ruff format' for extremely fast Python formatting
+  entry: hooks/run-tool.sh ruff format --force-exclude
+  language: script
+  types_or: [python, pyi, jupyter]
+  require_serial: true
+
+- id: typos
+  name: typos
+  description: Source code spell checker
+  entry: hooks/run-tool.sh typos --write-changes --force-exclude
+  language: script
+  types: [text]
+
+- id: rumdl
+  name: rumdl
+  description: 'Lint Markdown files. Exits 1 if violations are found. Add args [--fix]'
+  entry: hooks/run-tool.sh rumdl check
+  language: script
+  types: [markdown]
+  require_serial: true
+
+- id: rumdl-fmt
+  name: rumdl fmt
+  description: Format Markdown files in place. Always exits 0; relies on pre-commit
+  entry: hooks/run-tool.sh rumdl fmt
+  language: script
+  types: [markdown]
+  require_serial: true
+
+- id: codespell
+  name: codespell
+  description: Checks for common misspellings in text files.
+  entry: hooks/run-tool.sh codespell
+  language: script
+  types: [text]
+
+- id: mypy
+  name: mypy
+  description: Optional static typing for Python
+  entry: hooks/run-tool.sh mypy --ignore-missing-imports --scripts-are-modules
+  language: script
+  types_or: [python, pyi]
+  require_serial: true
+
+- id: uv-lock
+  name: uv-lock
+  description: Automatically run 'uv lock' on your project dependencies
+  entry: hooks/run-tool.sh uv lock
+  language: script
+  files: ^(uv\.lock|pyproject\.toml|uv\.toml)$
+  pass_filenames: false

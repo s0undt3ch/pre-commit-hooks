@@ -29,9 +29,17 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 | `shellcheck` | `shellcheck` | Static analysis for shell scripts |
 | `gitleaks` | `gitleaks` | Scan staged changes for secrets |
 | `pin-github-actions` | `gh` | Pin Action `uses:` refs to SHAs and verify existing pins |
+| `ruff-check` | `ruff` | Lint Python (Ruff) |
+| `ruff-format` | `ruff` | Format Python (Ruff) |
+| `typos` | `typos` | Source-code spell check |
+| `rumdl` | `rumdl` | Lint Markdown |
+| `rumdl-fmt` | `rumdl` | Format Markdown |
+| `codespell` | `codespell` | Spell check text files |
+| `mypy` | `mypy` | Static type-check Python |
+| `uv-lock` | `uv` | Keep uv.lock in sync with pyproject |
 | `sqlfluff-lint` | `sqlfluff` | Lint SQL files |
 | `sqlfluff-fix` | `sqlfluff` | Auto-fix SQL lint errors |
-| `system-tool` | _(you choose)_ | Run any PATH tool via the generic wrapper |
+| `system-tool` | *(you choose)* | Run any PATH tool via the generic wrapper |
 
 ## 1. Install the tools with mise
 
@@ -137,6 +145,11 @@ which keeps a single source of truth:
       - id: sqlfluff-lint
       - id: sqlfluff-fix
 ```
+
+The same principle applies across all hooks: `ruff`, `typos`, and `rumdl` are
+binary tools managed via `mise` (add them to your `mise.toml`), while the Python
+tools `codespell`, `mypy`, and `sqlfluff` come from your own dependency group
+(e.g. `uv.lock`) — none of these hooks use `additional_dependencies`.
 
 ## Development
 

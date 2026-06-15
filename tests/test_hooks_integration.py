@@ -39,7 +39,11 @@ def test_shellcheck_passes_on_clean_script() -> None:
 @pytest.mark.skipif(shutil.which("sqlfluff") is None, reason="sqlfluff not on PATH")
 def test_sqlfluff_lint_passes_on_clean_sql() -> None:
     result = run_tool(
-        "sqlfluff", "lint", "--processes", "0", "--disable-progress-bar",
+        "sqlfluff",
+        "lint",
+        "--processes",
+        "0",
+        "--disable-progress-bar",
         str(_FILES / "clean.sql"),
     )
     assert result.returncode == 0, result.stdout + result.stderr
@@ -50,3 +54,46 @@ def test_run_tool_exit_zero_skips_when_tool_truly_missing() -> None:
     # No real tool is involved, so this runs unconditionally (no skipif).
     result = run_tool("no-such-tool-xyzzy-42", "--exit-zero", str(_FILES / "clean.sh"))
     assert result.returncode == 0
+
+
+@pytest.mark.skipif(shutil.which("ruff") is None, reason="ruff not on PATH")
+def test_ruff_check_passes_on_clean_py() -> None:
+    result = run_tool("ruff", "check", "--force-exclude", str(_FILES / "clean_py.py"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("ruff") is None, reason="ruff not on PATH")
+def test_ruff_format_check_passes_on_clean_py() -> None:
+    result = run_tool(
+        "ruff", "format", "--check", "--force-exclude", str(_FILES / "clean_py.py")
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("typos") is None, reason="typos not on PATH")
+def test_typos_passes_on_clean_fixture() -> None:
+    result = run_tool("typos", str(_FILES / "clean_py.py"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("rumdl") is None, reason="rumdl not on PATH")
+def test_rumdl_passes_on_clean_md() -> None:
+    result = run_tool("rumdl", "check", str(_FILES / "clean.md"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("codespell") is None, reason="codespell not on PATH")
+def test_codespell_passes_on_clean_fixture() -> None:
+    result = run_tool("codespell", str(_FILES / "clean_py.py"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("mypy") is None, reason="mypy not on PATH")
+def test_mypy_passes_on_clean_py() -> None:
+    result = run_tool(
+        "mypy",
+        "--ignore-missing-imports",
+        "--scripts-are-modules",
+        str(_FILES / "clean_py.py"),
+    )
+    assert result.returncode == 0, result.stdout + result.stderr

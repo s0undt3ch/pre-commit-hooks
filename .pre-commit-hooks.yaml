@@ -33,7 +33,7 @@
   description: 'Pin GitHub Action uses: refs to commit SHAs and verify existing pins'
   entry: hooks/pin-github-actions.py
   language: script
-  files: ^(\.github/(workflows|actions/[^/]+)/.*\.ya?ml|action\.yml)$
+  files: ^(\.github/(workflows|actions/[^/]+)/.*\.ya?ml|action\.ya?ml)$
 
 - id: sqlfluff-lint
   name: sqlfluff-lint

@@ -27,4 +27,4 @@ repos:
         name: Pin & verify GitHub Action SHAs
         entry: hooks/pin-github-actions.py
         language: script
-        files: ^(\.github/(workflows|actions/[^/]+)/.*\.ya?ml|action\.yml)$
+        files: ^(\.github/(workflows|actions/[^/]+)/.*\.ya?ml|action\.ya?ml)$

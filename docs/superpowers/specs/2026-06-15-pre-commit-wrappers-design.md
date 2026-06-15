@@ -79,7 +79,7 @@ its own logic, so it is its own script rather than going through `run-tool.sh`.
 
 ### 3. `.pre-commit-hooks.yaml` — hook manifest
 
-Defines four hook ids, all `language: script`.
+Defines seven hook ids, all `language: script`.
 
 **Default tool args go in `entry`, never in `args`.** pre-commit lets a consumer
 override a hook's `args:` (and the override *replaces* it wholesale), but it does
@@ -114,7 +114,7 @@ script` differ.
 
 ### 4. `system-tool` — generic escape-hatch hook
 
-A fifth manifest entry with **no tool baked into `entry`** — just
+A manifest entry with **no tool baked into `entry`** — just
 `entry: hooks/run-tool.sh`. The consumer supplies the tool name and its args via
 the consumer-settable `args:` field, which pre-commit appends after `entry`; so
 the first `args` token lands as `run-tool.sh`'s tool-name argument:

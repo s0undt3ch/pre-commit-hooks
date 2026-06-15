@@ -42,11 +42,11 @@ stated plainly in the README.
 
 ### 1. `run-tool.sh` — generic forwarder (shell hooks)
 
-A single Bash script backing every thin "run the system binary" hook. Invoked
-as:
+A single Bash script (`hooks/run-tool.sh`) backing every thin "run the system
+binary" hook. Invoked as:
 
 ```
-run-tool.sh <tool> [default-args...]      # + consumer args + filenames (appended by pre-commit)
+hooks/run-tool.sh <tool> [default-args...]   # + consumer args + filenames (appended by pre-commit)
 ```
 
 Behaviour:
@@ -97,23 +97,41 @@ forwards the rest. This is why no per-tool thin wrappers are needed: the
 generic wrapper + defaults-in-`entry` already gives non-overridable,
 consumer-extensible defaults.
 
-| id | entry | other fields |
-|----|-------|--------------|
-| `actionlint` | `run-tool.sh actionlint` | `types: [yaml]`, `files: ^\.github/workflows/` |
-| `shellcheck` | `run-tool.sh shellcheck` | `types: [shell]`, `exclude: '\.(zsh\|fish)$'` |
-| `gitleaks` | `run-tool.sh gitleaks git --pre-commit --redact --staged --verbose` | `name: Detect hardcoded secrets`, `pass_filenames: false` |
-| `pin-github-actions` | `pin-github-actions.py` | `files:` workflows / composite actions / root `action.yml` |
+Each hook's `name`, `description`, `types`, `files`, and `pass_filenames` mirror
+the corresponding upstream hook so the hooks read familiarly in a consumer's
+output — only the `entry` (indirection through `run-tool.sh`) and `language:
+script` differ.
 
-The `gitleaks` entry, `name`/`description`, and `pass_filenames: false` match
-the upstream `gitleaks/gitleaks` `.pre-commit-hooks.yaml` exactly (only the
-indirection through `run-tool.sh` differs).
+| id | entry | name / description | other fields |
+|----|-------|--------------------|--------------|
+| `actionlint` | `hooks/run-tool.sh actionlint` | `Lint GitHub Actions workflow files` / `Runs system-installed actionlint to lint GitHub Actions workflow files` | `types: [yaml]`, `files: ^\.github/workflows/` |
+| `shellcheck` | `hooks/run-tool.sh shellcheck` | `ShellCheck` / `Static analysis tool for shell scripts` | `types: [shell]`, `exclude: '\.(zsh\|fish)$'` |
+| `gitleaks` | `hooks/run-tool.sh gitleaks git --pre-commit --redact --staged --verbose` | `Detect hardcoded secrets` / `Detect hardcoded secrets using Gitleaks` | `pass_filenames: false` |
+| `pin-github-actions` | `hooks/pin-github-actions.py` | `Pin & verify GitHub Action SHAs` / `Pin GitHub Action uses: refs to commit SHAs and verify existing pins` | `files:` workflows / composite actions / root `action.yml` |
+
+Upstream-matching details:
+
+- **`actionlint`** mirrors `rhysd/actionlint`'s `actionlint-system` hook
+  (name/description/`types`/`files`). The repo also sets
+  `minimum_pre_commit_version: 3.0.0`, as upstream does.
+- **`shellcheck`** mirrors `koalaman/shellcheck-precommit`'s description and
+  `types: [shell]`. Upstream **version-stamps** its name (`ShellCheck v0.11.0`);
+  we deliberately drop the version — running the system binary means the name
+  must not assert a version it doesn't control (that would be its own kind of
+  drift). The `exclude: '\.(zsh\|fish)$'` is our addition (shellcheck can't parse
+  zsh/fish), carried from the reference repo.
+- **`gitleaks`** matches `gitleaks/gitleaks`'s `entry`, `name`, `description`,
+  and `pass_filenames: false` exactly.
+- **`pin-github-actions`** is bespoke (no upstream); name/description taken from
+  the reference repo's local hook.
 
 ## Repository layout
 
 ```
 .pre-commit-hooks.yaml        # hook manifest (consumed by other repos)
-run-tool.sh                   # generic forwarder (executable, +x)
-pin-github-actions.py         # python tool (executable, +x)
+hooks/
+  run-tool.sh                 # generic forwarder (executable, +x)
+  pin-github-actions.py       # python tool (executable, +x)
 README.md
 LICENSE                       # already present
 pyproject.toml                # dev tooling (pytest) via uv; runtime is stdlib-only
@@ -125,6 +143,9 @@ tests/
 .github/workflows/ci.yml      # mise install + prek run --all-files + pytest
 ```
 
+All hook scripts live under `hooks/`, so manifest `entry:` paths are
+`hooks/run-tool.sh <tool> …` and `hooks/pin-github-actions.py`.
+
 ## Testing
 
 One test runner — `uv run pytest` — covers both the Python tool and the shell
@@ -134,7 +155,7 @@ framework (no bats/shellspec, no extra mise entry).
 ### `pin-github-actions.py`
 
 `tests/test_pin_github_actions.py` is the reference suite copied over, with
-`_HOOK_PATH` repointed at this repo's `pin-github-actions.py`. It loads the
+`_HOOK_PATH` repointed at this repo's `hooks/pin-github-actions.py`. It loads the
 standalone script via `importlib.util.spec_from_file_location` and never touches
 the network: per-line `verify_action_line` tests inject a fake resolver;
 `process_file` / cache tests stub `subprocess.run`; `main()` tests monkeypatch
@@ -167,8 +188,8 @@ pointed at a directory without the tool.
   install instructions are exercised, not aspirational: `python`, `uv`, `prek`,
   `actionlint`, `shellcheck`, `gitleaks`, and `gh` (for `pin-github-actions`).
 - **`.pre-commit-config.yaml`** wires this repo's hooks against itself via
-  `repo: local` entries that point `entry:` directly at `./run-tool.sh` and
-  `./pin-github-actions.py` (mirroring the four manifest hooks), so the wrapper,
+  `repo: local` entries that point `entry:` directly at `hooks/run-tool.sh` and
+  `hooks/pin-github-actions.py` (mirroring the four manifest hooks), so the wrapper,
   the workflow YAML, and the shell scripts are all linted/scanned by the very
   hooks being shipped. A small, deliberate duplication of the manifest entries —
   it keeps the dogfood self-contained without a circular `repo:` reference to an

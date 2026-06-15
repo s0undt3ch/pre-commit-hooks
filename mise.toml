@@ -1,5 +1,5 @@
 [tools]
-python = "3.13"
+python = "3.14.6"
 uv = "latest"
 prek = "latest"
 # These back the pre-commit hooks (run the PATH binary, not Docker / source).

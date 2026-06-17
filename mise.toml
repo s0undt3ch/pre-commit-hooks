@@ -1,17 +1,17 @@
 [tools]
 python = "3.14.6"
-uv = "latest"
-prek = "latest"
+uv = "0.11.21"
+prek = "0.4.5"
 # These back the pre-commit hooks (run the PATH binary, not Docker / source).
-actionlint = "latest"
-shellcheck = "latest"
-gitleaks = "latest"
+actionlint = "1.7.12"
+shellcheck = "0.11.0"
+gitleaks = "8.30.1"
 # gh resolves Action SHAs for the pin-github-actions hook.
-gh = "latest"
-ruff = "latest"
-typos = "latest"
-rumdl = "latest"
-yamlfmt = "latest"
+gh = "2.94.0"
+ruff = "0.15.17"
+typos = "1.47.2"
+rumdl = "0.2.17"
+yamlfmt = "0.21.0"
 # NOTE: sqlfluff/codespell/mypy/yamllint are NOT here — they're pure-Python tools in the uv dev group
 # (see pyproject.toml), installed only for the hook integration tests.
 

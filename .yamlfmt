@@ -1,0 +1,5 @@
+formatter:
+  type: basic
+  # Keep author-intended blank lines between entries (collapsing any run of
+  # consecutive blanks to a single one) instead of stripping them all.
+  retain_line_breaks_single: true

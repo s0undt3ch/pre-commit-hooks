@@ -11,7 +11,8 @@ gh = "latest"
 ruff = "latest"
 typos = "latest"
 rumdl = "latest"
-# NOTE: sqlfluff/codespell/mypy are NOT here — they're pure-Python tools in the uv dev group
+yamlfmt = "latest"
+# NOTE: sqlfluff/codespell/mypy/yamllint are NOT here — they're pure-Python tools in the uv dev group
 # (see pyproject.toml), installed only for the hook integration tests.
 
 [env]

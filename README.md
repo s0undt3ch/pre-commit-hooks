@@ -39,6 +39,8 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 | `uv-lock` | `uv` | Keep uv.lock in sync with pyproject |
 | `sqlfluff-lint` | `sqlfluff` | Lint SQL files |
 | `sqlfluff-fix` | `sqlfluff` | Auto-fix SQL lint errors |
+| `yamllint` | `yamllint` | Lint YAML files |
+| `yamlfmt` | `yamlfmt` | Format YAML files |
 | `system-tool` | *(you choose)* | Run any PATH tool via the generic wrapper |
 
 ## 1. Install the tools with mise
@@ -146,10 +148,11 @@ which keeps a single source of truth:
       - id: sqlfluff-fix
 ```
 
-The same principle applies across all hooks: `ruff`, `typos`, and `rumdl` are
-binary tools managed via `mise` (add them to your `mise.toml`), while the Python
-tools `codespell`, `mypy`, and `sqlfluff` come from your own dependency group
-(e.g. `uv.lock`) — none of these hooks use `additional_dependencies`.
+The same principle applies across all hooks: `ruff`, `typos`, `rumdl`, and
+`yamlfmt` (a Go binary) are binary tools managed via `mise` (add them to your
+`mise.toml`), while the Python tools `codespell`, `mypy`, `sqlfluff`, and
+`yamllint` come from your own dependency group (e.g. `uv.lock`) — none of these
+hooks use `additional_dependencies`.
 
 ## Development
 

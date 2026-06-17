@@ -1,9 +1,7 @@
----
 # Hooks that run the system-installed (mise-pinned) tool from PATH — no Docker,
 # no from-source compile. The tool's version lives in the consumer's mise.toml
 # (single source of truth), so it never drifts from a hook's own pin.
 # See README.md for usage with prek / pre-commit and mise.
-
 - id: actionlint
   name: Lint GitHub Actions workflow files
   description: Runs system-installed actionlint to lint GitHub Actions workflow files
@@ -12,7 +10,6 @@
   types: [yaml]
   files: ^\.github/workflows/
   minimum_pre_commit_version: 3.0.0
-
 - id: shellcheck
   name: ShellCheck
   description: Static analysis tool for shell scripts
@@ -20,21 +17,18 @@
   language: script
   types: [shell]
   exclude: '\.(zsh|fish)$'
-
 - id: gitleaks
   name: Detect hardcoded secrets
   description: Detect hardcoded secrets using Gitleaks
   entry: hooks/run-tool.sh gitleaks git --pre-commit --redact --staged --verbose
   language: script
   pass_filenames: false
-
 - id: pin-github-actions
   name: Pin & verify GitHub Action SHAs
   description: 'Pin GitHub Action uses: refs to commit SHAs and verify existing pins'
   entry: hooks/pin-github-actions.py
   language: script
   files: ^(\.github/(workflows|actions/[^/]+)/.*\.ya?ml|action\.ya?ml)$
-
 - id: sqlfluff-lint
   name: sqlfluff-lint
   description: Lints sql files with `SQLFluff`
@@ -42,7 +36,6 @@
   language: script
   types: [sql]
   require_serial: true
-
 - id: sqlfluff-fix
   name: sqlfluff-fix
   description: Fixes sql lint errors with `SQLFluff`
@@ -50,13 +43,11 @@
   language: script
   types: [sql]
   require_serial: true
-
 - id: system-tool
   name: Run a system tool
   description: 'Run any PATH-installed tool via run-tool.sh (tool + args supplied by the consumer; set pass_filenames: false for tools that manage their own file selection)'
   entry: hooks/run-tool.sh
   language: script
-
 - id: ruff-check
   name: ruff check
   description: Run 'ruff check' for extremely fast Python linting
@@ -64,7 +55,6 @@
   language: script
   types_or: [python, pyi, jupyter]
   require_serial: true
-
 - id: ruff-format
   name: ruff format
   description: Run 'ruff format' for extremely fast Python formatting
@@ -72,14 +62,12 @@
   language: script
   types_or: [python, pyi, jupyter]
   require_serial: true
-
 - id: typos
   name: typos
   description: Source code spell checker
   entry: hooks/run-tool.sh typos --write-changes --force-exclude
   language: script
   types: [text]
-
 - id: rumdl
   name: rumdl
   description: 'Lint Markdown files. Exits 1 if violations are found. Add args [--fix]'
@@ -87,7 +75,6 @@
   language: script
   types: [markdown]
   require_serial: true
-
 - id: rumdl-fmt
   name: rumdl fmt
   description: Format Markdown files in place. Always exits 0; relies on pre-commit
@@ -95,14 +82,12 @@
   language: script
   types: [markdown]
   require_serial: true
-
 - id: codespell
   name: codespell
   description: Checks for common misspellings in text files.
   entry: hooks/run-tool.sh codespell
   language: script
   types: [text]
-
 - id: mypy
   name: mypy
   description: Optional static typing for Python
@@ -110,7 +95,6 @@
   language: script
   types_or: [python, pyi]
   require_serial: true
-
 - id: uv-lock
   name: uv-lock
   description: Automatically run 'uv lock' on your project dependencies
@@ -118,3 +102,15 @@
   language: script
   files: ^(uv\.lock|pyproject\.toml|uv\.toml)$
   pass_filenames: false
+- id: yamllint
+  name: yamllint
+  description: This hook runs yamllint.
+  entry: hooks/run-tool.sh yamllint
+  language: script
+  types: [file, yaml]
+- id: yamlfmt
+  name: yamlfmt
+  description: Format YAML files with yamlfmt (github.com/google/yamlfmt)
+  entry: hooks/run-tool.sh yamlfmt
+  language: script
+  types: [yaml]

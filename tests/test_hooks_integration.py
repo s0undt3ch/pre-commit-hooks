@@ -97,3 +97,16 @@ def test_mypy_passes_on_clean_py() -> None:
         str(_FILES / "clean_py.py"),
     )
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("yamllint") is None, reason="yamllint not on PATH")
+def test_yamllint_passes_on_clean_yaml() -> None:
+    result = run_tool("yamllint", str(_FILES / "clean.yaml"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("yamlfmt") is None, reason="yamlfmt not on PATH")
+def test_yamlfmt_lint_passes_on_clean_yaml() -> None:
+    # -lint = check-only (non-zero if the file is not already formatted)
+    result = run_tool("yamlfmt", "-lint", str(_FILES / "clean.yaml"))
+    assert result.returncode == 0, result.stdout + result.stderr

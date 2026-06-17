@@ -1,4 +1,3 @@
----
 minimum_pre_commit_version: 3.0.0
 repos:
   - repo: local
@@ -35,18 +34,21 @@ repos:
         language: script
         types_or: [python, pyi, jupyter]
         require_serial: true
+
       - id: ruff-format
         name: ruff format
         entry: hooks/run-tool.sh ruff format --force-exclude
         language: script
         types_or: [python, pyi, jupyter]
         require_serial: true
+
       - id: typos
         name: typos
         entry: hooks/run-tool.sh typos --write-changes --force-exclude
         language: script
         types: [text]
         exclude: ^(docs/|uv\.lock$)
+
       - id: rumdl
         name: rumdl
         entry: hooks/run-tool.sh rumdl check
@@ -54,21 +56,36 @@ repos:
         types: [markdown]
         require_serial: true
         exclude: ^docs/
+
       - id: codespell
         name: codespell
         entry: hooks/run-tool.sh codespell
         language: script
         types: [text]
         exclude: ^(docs/|uv\.lock$)
+
       - id: mypy
         name: mypy
         entry: hooks/run-tool.sh mypy --ignore-missing-imports --scripts-are-modules
         language: script
         types_or: [python, pyi]
         require_serial: true
+
       - id: uv-lock
         name: uv-lock
         entry: hooks/run-tool.sh uv lock
         language: script
         files: ^(uv\.lock|pyproject\.toml|uv\.toml)$
         pass_filenames: false
+
+      - id: yamllint
+        name: yamllint
+        entry: hooks/run-tool.sh yamllint
+        language: script
+        types: [file, yaml]
+
+      - id: yamlfmt
+        name: yamlfmt
+        entry: hooks/run-tool.sh yamlfmt
+        language: script
+        types: [yaml]

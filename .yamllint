@@ -1,0 +1,22 @@
+# yamllint config tuned to ACCEPT yamlfmt's output, so the two tools never
+# fight each other on the same file. Each disabled/relaxed rule is justified.
+extends: default
+# yamllint walks every path it is handed; without this it descends into the
+# project virtualenv and flags third-party YAML we neither own nor format.
+ignore: |
+  .venv/
+rules:
+  # yamlfmt does not wrap long lines, so enforcing a column limit here would
+  # produce errors yamlfmt can never fix. Don't fight the formatter.
+  line-length: disable
+  # yamlfmt strips the optional leading "---"; a document-start marker is not
+  # required for these single-document files.
+  document-start: disable
+  # GitHub Actions workflows use a bare "on:" key, which yamllint's truthy
+  # check would otherwise reject. yamlfmt preserves it as written.
+  truthy:
+    check-keys: false
+  # yamlfmt keeps a single space before inline comments (e.g. the "# v6" SHA
+  # pins in workflows); yamllint's default wants two, a gap yamlfmt won't close.
+  comments:
+    min-spaces-from-content: 1

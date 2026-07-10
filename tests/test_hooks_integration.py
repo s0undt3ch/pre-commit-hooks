@@ -36,6 +36,13 @@ def test_shellcheck_passes_on_clean_script() -> None:
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.skipif(shutil.which("shfmt") is None, reason="shfmt not on PATH")
+def test_shfmt_diff_passes_on_clean_script() -> None:
+    # -d = report a diff (non-zero) when the file is not already formatted
+    result = run_tool("shfmt", "-d", str(_FILES / "clean.sh"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
 @pytest.mark.skipif(shutil.which("sqlfluff") is None, reason="sqlfluff not on PATH")
 def test_sqlfluff_lint_passes_on_clean_sql() -> None:
     result = run_tool(

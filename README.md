@@ -27,6 +27,7 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 |----|------------------------|--------------|
 | `actionlint` | `actionlint` | Lint GitHub Actions workflow files |
 | `shellcheck` | `shellcheck` | Static analysis for shell scripts |
+| `shfmt` | `shfmt` | Format shell scripts (write in place) |
 | `gitleaks` | `gitleaks` | Scan staged changes for secrets |
 | `pin-github-actions` | `gh` | Pin Action `uses:` refs to SHAs and verify existing pins |
 | `ruff-check` | `ruff` | Lint Python (Ruff) |
@@ -117,11 +118,11 @@ args via `args:` (the first token is the tool name):
 
 ```yaml
       - id: system-tool
-        alias: shfmt          # distinct name so you can reuse the id
-        name: shfmt
-        args: [shfmt, -d, -i, "2"]
-        types: [shell]
-# -> runs: shfmt -d -i 2 <staged shell files>
+        alias: taplo          # distinct name so you can reuse the id
+        name: taplo
+        args: [taplo, lint]
+        types: [toml]
+# -> runs: taplo lint <staged TOML files>
 ```
 
 This is also the **trial path** for a new tool: prove it behaves under the
@@ -148,9 +149,9 @@ which keeps a single source of truth:
       - id: sqlfluff-fix
 ```
 
-The same principle applies across all hooks: `ruff`, `typos`, `rumdl`, and
-`yamlfmt` (a Go binary) are binary tools managed via `mise` (add them to your
-`mise.toml`), while the Python tools `codespell`, `mypy`, `sqlfluff`, and
+The same principle applies across all hooks: `ruff`, `typos`, `rumdl`, `shfmt`,
+and `yamlfmt` (Go binaries) are binary tools managed via `mise` (add them to
+your `mise.toml`), while the Python tools `codespell`, `mypy`, `sqlfluff`, and
 `yamllint` come from your own dependency group (e.g. `uv.lock`) — none of these
 hooks use `additional_dependencies`.
 

@@ -20,6 +20,14 @@
   types: [shell]
   exclude: '\.(zsh|fish)$'
 
+- id: shfmt
+  name: shfmt
+  description: Format shell scripts with shfmt (github.com/mvdan/sh)
+  entry: hooks/run-tool.sh shfmt -w
+  language: script
+  types: [shell]
+  exclude: '\.(zsh|fish)$'
+
 - id: gitleaks
   name: Detect hardcoded secrets
   description: Detect hardcoded secrets using Gitleaks

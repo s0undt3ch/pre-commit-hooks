@@ -139,3 +139,18 @@
   entry: hooks/run-tool.sh yamlfmt
   language: script
   types: [yaml]
+
+- id: taplo-lint
+  name: taplo lint
+  description: Lint TOML files with taplo (github.com/tamasfe/taplo)
+  entry: hooks/run-tool.sh taplo lint
+  language: script
+  types: [toml]
+
+- id: taplo-fmt
+  name: taplo fmt
+  description: Format TOML files in place with taplo (github.com/tamasfe/taplo)
+  entry: hooks/run-tool.sh taplo fmt
+  language: script
+  types: [toml]
+  exclude: (^|.*/)(mise|uv)\.lock$

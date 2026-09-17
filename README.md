@@ -42,6 +42,8 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 | `sqlfluff-fix` | `sqlfluff` | Auto-fix SQL lint errors |
 | `yamllint` | `yamllint` | Lint YAML files |
 | `yamlfmt` | `yamlfmt` | Format YAML files |
+| `taplo-lint` | `taplo` | Lint TOML files |
+| `taplo-fmt` | `taplo` | Format TOML files (write in place) |
 | `system-tool` | *(you choose)* | Run any PATH tool via the generic wrapper |
 
 ## 1. Install the tools with mise
@@ -118,22 +120,11 @@ args via `args:` (the first token is the tool name):
 
 ```yaml
       - id: system-tool
-        alias: taplo-lint      # distinct name so you can reuse the id
-        name: taplo lint
-        args: [taplo, lint]
-        types: [toml]
-# -> runs: taplo lint <staged TOML files>
-
-      # taplo has no dedicated hook id yet — run it through the generic
-      # system-tool wrapper. Exclude lockfiles: they're generated TOML,
-      # not hand-formatted, and reformatting them would just cause churn
-      # against whatever `uv`/`mise lock` themselves wrote.
-      - id: system-tool
-        alias: taplo-fmt
-        name: taplo fmt
-        args: [taplo, fmt]
-        types: [toml]
-        exclude: ^(mise\.lock|uv\.lock|tools/uv\.lock|\.mise/locks/.*)$
+        alias: hadolint        # distinct name so you can reuse the id
+        name: hadolint
+        args: [hadolint]
+        types: [dockerfile]
+# -> runs: hadolint <staged Dockerfiles>
 ```
 
 This is also the **trial path** for a new tool: prove it behaves under the
@@ -161,7 +152,7 @@ which keeps a single source of truth:
 ```
 
 The same principle applies across all hooks: `ruff`, `typos`, `rumdl`, `shfmt`,
-and `yamlfmt` (Go binaries) are binary tools managed via `mise` (add them to
+`yamlfmt`, and `taplo` are binary tools managed via `mise` (add them to
 your `mise.toml`), while the Python tools `codespell`, `mypy`, `sqlfluff`, and
 `yamllint` come from your own dependency group (e.g. `uv.lock`) — none of these
 hooks use `additional_dependencies`.

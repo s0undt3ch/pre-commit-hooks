@@ -118,11 +118,22 @@ args via `args:` (the first token is the tool name):
 
 ```yaml
       - id: system-tool
-        alias: taplo          # distinct name so you can reuse the id
-        name: taplo
+        alias: taplo-lint      # distinct name so you can reuse the id
+        name: taplo lint
         args: [taplo, lint]
         types: [toml]
 # -> runs: taplo lint <staged TOML files>
+
+      # taplo has no dedicated hook id yet — run it through the generic
+      # system-tool wrapper. Exclude lockfiles: they're generated TOML,
+      # not hand-formatted, and reformatting them would just cause churn
+      # against whatever `uv`/`mise lock` themselves wrote.
+      - id: system-tool
+        alias: taplo-fmt
+        name: taplo fmt
+        args: [taplo, fmt]
+        types: [toml]
+        exclude: ^(mise\.lock|uv\.lock|tools/uv\.lock|\.mise/locks/.*)$
 ```
 
 This is also the **trial path** for a new tool: prove it behaves under the

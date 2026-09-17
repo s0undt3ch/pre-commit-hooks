@@ -45,7 +45,7 @@ def run(args: list[str], bindir: Path) -> subprocess.CompletedProcess[str]:
     env = dict(os.environ)
     env["PATH"] = f"{bindir}{os.pathsep}{env['PATH']}"
     return subprocess.run(
-        [str(_RUN_TOOL), *args], env=env, capture_output=True, text=True
+        [str(_RUN_TOOL), *args], env=env, capture_output=True, text=True, check=False
     )
 
 

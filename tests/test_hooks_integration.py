@@ -118,3 +118,15 @@ def test_yamlfmt_lint_passes_on_clean_yaml() -> None:
     # -lint = check-only (non-zero if the file is not already formatted)
     result = run_tool("yamlfmt", "-lint", str(_FILES / "clean.yaml"))
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("taplo") is None, reason="taplo not on PATH")
+def test_taplo_lint_passes_on_clean_toml() -> None:
+    result = run_tool("taplo", "lint", str(_FILES / "clean.toml"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(shutil.which("taplo") is None, reason="taplo not on PATH")
+def test_taplo_fmt_check_passes_on_clean_toml() -> None:
+    result = run_tool("taplo", "fmt", "--check", str(_FILES / "clean.toml"))
+    assert result.returncode == 0, result.stdout + result.stderr

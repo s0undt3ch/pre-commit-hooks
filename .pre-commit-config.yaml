@@ -89,3 +89,16 @@ repos:
         entry: hooks/run-tool.sh yamlfmt
         language: script
         types: [yaml]
+
+      - id: taplo-lint
+        name: taplo lint
+        entry: hooks/run-tool.sh taplo lint
+        language: script
+        types: [toml]
+
+      - id: taplo-fmt
+        name: taplo fmt
+        entry: hooks/run-tool.sh taplo fmt
+        language: script
+        types: [toml]
+        exclude: (^|.*/)(mise|uv)\.lock$

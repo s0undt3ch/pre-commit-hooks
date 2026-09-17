@@ -10,7 +10,7 @@ import shutil
 import subprocess
 import sys
 from collections.abc import Callable
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 from typing import TypedDict
 
@@ -43,7 +43,7 @@ def check_gh_cli() -> bool:
     return shutil.which("gh") is not None
 
 
-@lru_cache(maxsize=None)
+@cache
 def get_commit_sha(owner: str, repo: str, ref: str) -> str | None:
     """Get the commit SHA for a given ref (tag or branch) using gh CLI.
 
@@ -58,7 +58,7 @@ def get_commit_sha(owner: str, repo: str, ref: str) -> str | None:
     resolves each unique ``owner/repo@ref`` once per run instead of
     re-querying `gh api` for every occurrence. The cache lives for the
     process (one hook invocation), so it never serves stale data across
-    runs. (``lru_cache`` does not memoise raised exceptions, so a transient
+    runs. (``functools.cache`` does not memoise raised exceptions, so a transient
     failure is retried on the next occurrence rather than poisoning the run.)
     """
     try:
@@ -68,6 +68,7 @@ def get_commit_sha(owner: str, repo: str, ref: str) -> str | None:
             capture_output=True,
             text=True,
             timeout=10,
+            check=False,
         )
     except Exception as e:
         # Timeout, gh vanished mid-run, OSError, ... — all transient.
@@ -102,12 +103,13 @@ def get_latest_release(owner: str, repo: str) -> str | None:
             capture_output=True,
             text=True,
             timeout=10,
+            check=False,
         )
         if result.returncode == 0:
             data = json.loads(result.stdout)
             return data["tag_name"]
         return None
-    except Exception as e:
+    except (OSError, subprocess.SubprocessError, json.JSONDecodeError, KeyError) as e:
         print(
             f"Warning: Failed to fetch latest release for {owner}/{repo}: {e}",
             file=sys.stderr,
@@ -146,7 +148,7 @@ def parse_action_line(line: str, include_pinned: bool = False) -> ActionLine | N
 
 def verify_action_line(
     line: str,
-    resolve: "Callable[[str, str, str], str | None]" = get_commit_sha,
+    resolve: Callable[[str, str, str], str | None] = get_commit_sha,
 ) -> str | None:
     """Verify a single `uses:` line's pin against its `# <tag>` comment.
 
@@ -271,7 +273,7 @@ def process_file(filepath: Path, use_latest: bool = False) -> tuple[bool, list[s
     """
     try:
         content = filepath.read_text()
-    except Exception as e:
+    except (OSError, UnicodeDecodeError) as e:
         return False, [f"{filepath}: could not read file: {e}"]
 
     modified = False

@@ -21,6 +21,7 @@ def run_tool(*args: str) -> subprocess.CompletedProcess[str]:
         cwd=_REPO_ROOT,
         capture_output=True,
         text=True,
+        check=False,
     )
 
 

@@ -44,6 +44,8 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 | `yamlfmt` | `yamlfmt` | Format YAML files |
 | `taplo-lint` | `taplo` | Lint TOML files |
 | `taplo-fmt` | `taplo` | Format TOML files (write in place) |
+| `semgrep-ci` | `semgrep` | SAST scan of staged diff (requires `semgrep login`) |
+| `semgrep-scan` | `semgrep` | SAST scan of changed files (requires `semgrep login`) |
 | `system-tool` | *(you choose)* | Run any PATH tool via the generic wrapper |
 
 ## 1. Install the tools with mise
@@ -156,6 +158,38 @@ The same principle applies across all hooks: `ruff`, `typos`, `rumdl`, `shfmt`,
 your `mise.toml`), while the Python tools `codespell`, `mypy`, `sqlfluff`, and
 `yamllint` come from your own dependency group (e.g. `uv.lock`) — none of these
 hooks use `additional_dependencies`.
+
+## 6. semgrep (authentication required)
+
+The semgrep hooks use a dedicated wrapper (`hooks/run-semgrep.sh`) instead of
+`run-tool.sh`. Unlike other tools, semgrep requires you to be logged in to
+semgrep.dev to pull your rule config. If semgrep is missing or you are not
+authenticated, the hook prints a warning and exits 0 — it never blocks a commit
+from a contributor who hasn't set up a Semgrep account.
+
+**`semgrep-ci`** scans the staged diff using your Semgrep App rule config and only
+reports blocking findings. It does not accept filenames — semgrep manages its own
+file selection from the diff:
+
+```yaml
+      - id: semgrep-ci
+```
+
+**`semgrep-scan`** is file-based and runs against the changed files pre-commit
+passes it. You must supply `--config` to specify which rules to run:
+
+```yaml
+      - id: semgrep-scan
+        args: [--config, auto]
+```
+
+Log in before running either hook:
+
+```bash
+semgrep login
+```
+
+Or set `SEMGREP_APP_TOKEN` in your environment for non-interactive / CI use.
 
 ## Development
 

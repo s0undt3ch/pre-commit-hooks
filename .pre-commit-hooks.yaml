@@ -154,3 +154,19 @@
   language: script
   types: [toml]
   exclude: (^|.*/)(mise|uv)\.lock$
+
+- id: semgrep-ci
+  name: semgrep ci
+  description: >-
+    SAST scan of staged changes with semgrep ci. Requires `semgrep login`; skips with a warning if semgrep is missing or not authenticated.
+  entry: hooks/run-semgrep.sh ci
+  language: script
+  pass_filenames: false
+
+- id: semgrep-scan
+  name: semgrep scan
+  description: >-
+    SAST scan of changed files with semgrep scan. Pass --config to specify rules. Skips with a warning if semgrep is missing or not authenticated.
+  entry: hooks/run-semgrep.sh scan
+  language: script
+  types_or: [python, javascript, typescript, go, java, ruby, rust, c, cpp]

@@ -169,4 +169,4 @@
     SAST scan of changed files with semgrep scan. Pass --config to specify rules. Skips with a warning if semgrep is missing or not authenticated.
   entry: hooks/run-semgrep.sh scan
   language: script
-  types_or: [python, javascript, typescript, go, java, ruby, rust, c, cpp]
+  types_or: [python, javascript, ts, tsx, go, java, ruby, rust, c, c++]

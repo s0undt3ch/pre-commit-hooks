@@ -1,17 +1,17 @@
 [tools]
-python = "3.14.7"
-uv = "0.12.15"
-prek = "0.5.3"
+python = "3.14.8"
+uv = "0.12.23"
+prek = "0.5.4"
 # These back the pre-commit hooks (run the PATH binary, not Docker / source).
 actionlint = "1.7.12"
 shellcheck = "0.11.0"
 shfmt = "3.14.1"
 gitleaks = "8.30.1"
 # gh resolves Action SHAs for the pin-github-actions hook.
-gh = "2.101.0"
-ruff = "0.16.8"
-typos = "1.50.2"
-rumdl = "0.2.73"
+gh = "2.102.0"
+ruff = "0.16.10"
+typos = "1.50.3"
+rumdl = "0.2.78"
 yamlfmt = "0.21.0"
 taplo = "0.10.0"
 # NOTE: sqlfluff/codespell/mypy/yamllint are NOT here — they're pure-Python tools in the uv dev group

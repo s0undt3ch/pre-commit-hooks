@@ -31,6 +31,32 @@ def test_actionlint_passes_on_clean_workflow() -> None:
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.skipif(
+    shutil.which("jactionlint") is None, reason="jactionlint not on PATH"
+)
+def test_jactionlint_passes_on_clean_workflow() -> None:
+    result = run_tool("jactionlint", str(_FILES / "clean_workflow.yml"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skipif(
+    shutil.which("jactionlint") is None, reason="jactionlint not on PATH"
+)
+def test_jactionlint_fix_applies_safe_fix(tmp_path: Path) -> None:
+    workflow = tmp_path / "workflow.yml"
+    checkout = (
+        "      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7\n"
+    )
+    workflow.write_text(
+        (_FILES / "clean_workflow.yml")
+        .read_text()
+        .replace('      - run: echo "hello"\n', checkout)
+    )
+    result = run_tool("jactionlint", "--fix", str(workflow))
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "persist-credentials: false" in workflow.read_text()
+
+
 @pytest.mark.skipif(shutil.which("shellcheck") is None, reason="shellcheck not on PATH")
 def test_shellcheck_passes_on_clean_script() -> None:
     result = run_tool("shellcheck", str(_FILES / "clean.sh"))

@@ -2,8 +2,13 @@ name: sample
 on:
   push:
     branches: [main]
+permissions: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   noop:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - run: echo "hello"

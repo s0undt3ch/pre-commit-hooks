@@ -26,6 +26,8 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 | id | tool (must be on PATH) | what it does |
 |----|------------------------|--------------|
 | `actionlint` | `actionlint` | Lint GitHub Actions workflow files |
+| `jactionlint` | `jactionlint` | Lint workflows, composite actions and `dependabot.yml` (correctness + security) |
+| `jactionlint-fix` | `jactionlint` | Apply jactionlint's safe fixes in place, then lint |
 | `shellcheck` | `shellcheck` | Static analysis for shell scripts |
 | `shfmt` | `shfmt` | Format shell scripts (write in place) |
 | `gitleaks` | `gitleaks` | Scan staged changes for secrets |
@@ -135,7 +137,26 @@ wrapper here, then open a PR promoting it to a first-class dedicated hook.
 > **Limitation:** the generic hook needs at least one arg or filename. A bare,
 > argument-less command (`args: [mytool]` with `pass_filenames: false`) no-ops.
 
-## 5. sqlfluff (and the "no `additional_dependencies`" rule)
+## 5. jactionlint
+
+[jactionlint](https://github.com/jdx/jactionlint) is a fork of actionlint that
+adds security and policy rules. Install it with `mise use jactionlint`. Its hooks
+run on workflows, composite actions (`action.yml`) and `.github/dependabot.yml`.
+
+- **`jactionlint`** lints and fails on findings of level `error`.
+- **`jactionlint-fix`** applies the safe fixes in place, then fails on what is
+  left. Add `args: [--fix=unsafe]` to apply the fixes that may change behaviour.
+
+The default profile fails on repositories that never followed it. Choose a
+gentler one with `args: [--profile=correctness]`, or set `profile:` in
+`.github/jactionlint.yaml`:
+
+```yaml
+      - id: jactionlint
+        args: [--profile=correctness]
+```
+
+## 6. sqlfluff (and the "no `additional_dependencies`" rule)
 
 `sqlfluff-lint` / `sqlfluff-fix` run the `sqlfluff` already on your PATH. Unlike
 the upstream `sqlfluff/sqlfluff` hooks, **there is no `additional_dependencies`**
@@ -159,7 +180,7 @@ your `mise.toml`), while the Python tools `codespell`, `mypy`, `sqlfluff`, and
 `yamllint` come from your own dependency group (e.g. `uv.lock`) — none of these
 hooks use `additional_dependencies`.
 
-## 6. semgrep (authentication required)
+## 7. semgrep (authentication required)
 
 The semgrep hooks use a dedicated wrapper (`hooks/run-semgrep.sh`) instead of
 `run-tool.sh`. Unlike other tools, semgrep requires you to be logged in to

@@ -2,12 +2,12 @@ minimum_pre_commit_version: 3.0.0
 repos:
   - repo: local
     hooks:
-      - id: actionlint
-        name: Lint GitHub Actions workflow files
-        entry: hooks/run-tool.sh actionlint
+      - id: jactionlint
+        name: Lint GitHub Actions workflow files (jactionlint)
+        entry: hooks/run-tool.sh jactionlint
         language: script
         types: [yaml]
-        files: ^\.github/workflows/
+        files: ^(\.github/workflows/|\.github/dependabot\.ya?ml$|(.*/)?action\.ya?ml$)
 
       - id: shellcheck
         name: ShellCheck

@@ -4,6 +4,7 @@ uv = "0.12.24"
 prek = "0.5.5"
 # These back the pre-commit hooks (run the PATH binary, not Docker / source).
 actionlint = "1.7.12"
+jactionlint = { version = "2.3.0", workflow = "release.yaml" }
 shellcheck = "0.11.0"
 shfmt = "3.14.1"
 gitleaks = "8.30.1"

@@ -199,9 +199,7 @@ def test_real_rebase_does_not_push(
     assert git(clone, "rev-parse", "HEAD") != pushed
 
 
-def test_real_multi_commit_cherry_pick_does_not_push(
-    clone: Path, remote: Path
-) -> None:
+def test_real_multi_commit_cherry_pick_does_not_push(clone: Path, remote: Path) -> None:
     # Unlike a rebase, a cherry-pick stays on the branch, so only the sequencer
     # check stops it pushing half-way through.
     git(clone, "switch", "-q", "-c", "side")
@@ -250,9 +248,7 @@ def test_rejects_non_numeric_timeout(clone: Path) -> None:
     assert result.returncode == 2
 
 
-def test_does_not_recreate_branch_deleted_on_remote(
-    clone: Path, remote: Path
-) -> None:
+def test_does_not_recreate_branch_deleted_on_remote(clone: Path, remote: Path) -> None:
     git(clone, "switch", "-q", "-c", "merged")
     git(clone, "push", "-q", "-u", "origin", "merged")
     git(remote, "branch", "-D", "merged")

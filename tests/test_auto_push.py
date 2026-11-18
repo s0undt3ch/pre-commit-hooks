@@ -172,7 +172,9 @@ def test_rejects_unknown_argument(clone: Path) -> None:
     assert "unknown argument" in result.stderr
 
 
-def test_real_rebase_does_not_push(clone: Path, remote: Path) -> None:
+def test_real_rebase_does_not_push(
+    clone: Path, remote: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     hook = clone / git(clone, "rev-parse", "--git-path", "hooks") / "post-commit"
     hook.parent.mkdir(parents=True, exist_ok=True)
     hook.write_text(f'#!/bin/sh\nexec "{_AUTO_PUSH}"\n')
@@ -180,6 +182,8 @@ def test_real_rebase_does_not_push(clone: Path, remote: Path) -> None:
     commit(clone, "second")
     commit(clone, "third")
     pushed = remote_head(remote)
+    # Commits made in the same second rebase to identical SHAs; force new ones.
+    monkeypatch.setenv("GIT_COMMITTER_DATE", "@1000000000 +0000")
     git(clone, "rebase", "-q", "--force-rebase", "HEAD~2")
     assert remote_head(remote) == pushed
     assert git(clone, "rev-parse", "HEAD") != pushed

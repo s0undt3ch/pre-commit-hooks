@@ -48,6 +48,7 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 | `taplo-fmt` | `taplo` | Format TOML files (write in place) |
 | `semgrep-ci` | `semgrep` | SAST scan of staged diff (requires `semgrep login`) |
 | `semgrep-scan` | `semgrep` | SAST scan of changed files (requires `semgrep login`) |
+| `auto-push` | `git` | Push each new commit to its upstream (post-commit) |
 | `system-tool` | *(you choose)* | Run any PATH tool via the generic wrapper |
 
 ## 1. Install the tools with mise
@@ -211,6 +212,61 @@ semgrep login
 ```
 
 Or set `SEMGREP_APP_TOKEN` in your environment for non-interactive / CI use.
+
+## 8. auto-push (post-commit)
+
+`auto-push` runs after each commit and pushes it to the current branch's
+upstream. It runs at the `post-commit` stage, so git won't run it until you
+install that shim as well:
+
+```yaml
+default_install_hook_types: [pre-commit, post-commit]
+repos:
+  - repo: https://github.com/s0undt3ch/pre-commit-hooks
+    rev: vX.Y.Z
+    hooks:
+      - id: auto-push
+        args: [--branch=main]
+```
+
+Then run `prek install` again. `prek install -t post-commit` also works.
+
+It never force-pushes. It skips the commit, with a note, when:
+
+- HEAD is detached;
+- a rebase, or a multi-commit cherry-pick or revert, is in progress (git fires
+  post-commit for every replayed commit);
+- the branch doesn't match any `--branch=<glob>` (repeatable; no `--branch`
+  means every branch);
+- the branch has no upstream, or its remote-tracking ref doesn't exist yet.
+  Pass `--set-upstream` to publish new branches to `remote.pushDefault` (or
+  `origin`) instead.
+- `push.default` gives the branch no push destination, for example `simple`
+  with an upstream of a different name.
+
+If the branch has diverged from its remote-tracking ref, for example after you
+amend a commit you already pushed, it refuses to push and fails. Sort that out
+by hand.
+
+It also fails, rather than recreate the branch, when the remote branch is no
+longer where your tracking ref says, for example after it was deleted on
+merge. Each push is a fast-forward guarded by `--force-with-lease`.
+
+A multi-commit cherry-pick or revert pushes nothing, not even its last commit:
+git clears its state only after the final post-commit hook runs. Run
+`git push` once it finishes.
+
+The push runs in the foreground, so `git commit` waits for it. That keeps a
+failed push visible: prek reports the hook as failed. The commit is made
+either way, because post-commit can't undo it. A push that hangs is killed
+after 60 seconds; change that with `--timeout=<seconds>` (`0` means never). The
+timeout needs `timeout` from GNU coreutils (`gtimeout` on macOS); without it
+the push has no time limit.
+
+`auto-push` isn't a tool wrapper, so `--exit-zero` doesn't apply to it.
+
+`git commit --no-verify` does **not** skip post-commit hooks. To commit without
+pushing, run `SKIP=auto-push git commit ...`.
 
 ## Development
 

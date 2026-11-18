@@ -191,8 +191,7 @@
 
 - id: auto-push
   name: Push the new commit to its upstream
-  description: >-
-    post-commit hook that pushes the commit just made to the branch's upstream. Never force-pushes; skips detached HEAD, rebases and branches with no upstream. Needs the post-commit shim installed (see README)
+  description: Pushes each new commit to its upstream (post-commit stage; see README for setup and skip rules)
   entry: hooks/auto-push.sh
   language: script
   stages: [post-commit]

@@ -241,14 +241,29 @@ It never force-pushes. It skips the commit, with a note, when:
 - the branch has no upstream, or its remote-tracking ref doesn't exist yet.
   Pass `--set-upstream` to publish new branches to `remote.pushDefault` (or
   `origin`) instead.
+- `push.default` gives the branch no push destination, for example `simple`
+  with an upstream of a different name.
 
 If the branch has diverged from its remote-tracking ref, for example after you
 amend a commit you already pushed, it refuses to push and fails. Sort that out
 by hand.
 
+It also fails, rather than recreate the branch, when the remote branch is no
+longer where your tracking ref says, for example after it was deleted on
+merge. Each push is a fast-forward guarded by `--force-with-lease`.
+
+A multi-commit cherry-pick or revert pushes nothing, not even its last commit:
+git clears its state only after the final post-commit hook runs. Run
+`git push` once it finishes.
+
 The push runs in the foreground, so `git commit` waits for it. That keeps a
 failed push visible: prek reports the hook as failed. The commit is made
-either way, because post-commit can't undo it.
+either way, because post-commit can't undo it. A push that hangs is killed
+after 60 seconds; change that with `--timeout=<seconds>` (`0` means never). The
+timeout needs `timeout` from GNU coreutils (`gtimeout` on macOS); without it
+the push has no time limit.
+
+`auto-push` isn't a tool wrapper, so `--exit-zero` doesn't apply to it.
 
 `git commit --no-verify` does **not** skip post-commit hooks. To commit without
 pushing, run `SKIP=auto-push git commit ...`.

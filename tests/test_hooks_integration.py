@@ -43,18 +43,13 @@ def test_jactionlint_passes_on_clean_workflow() -> None:
     shutil.which("jactionlint") is None, reason="jactionlint not on PATH"
 )
 def test_jactionlint_fix_applies_safe_fix(tmp_path: Path) -> None:
+    # Zero-width space: this fix, unlike action rules, doesn't track action versions.
+    clean = (_FILES / "clean_workflow.yml").read_text()
     workflow = tmp_path / "workflow.yml"
-    checkout = (
-        "      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7\n"
-    )
-    workflow.write_text(
-        (_FILES / "clean_workflow.yml")
-        .read_text()
-        .replace('      - run: echo "hello"\n', checkout)
-    )
+    workflow.write_text(clean.replace('echo "hello"', 'echo "hello\u200b"'))
     result = run_tool("jactionlint", "--fix", str(workflow))
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "persist-credentials: false" in workflow.read_text()
+    assert workflow.read_text() == clean
 
 
 @pytest.mark.skipif(shutil.which("shellcheck") is None, reason="shellcheck not on PATH")

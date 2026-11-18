@@ -221,6 +221,7 @@ install that shim as well:
 
 ```yaml
 default_install_hook_types: [pre-commit, post-commit]
+default_stages: [pre-commit]
 repos:
   - repo: https://github.com/s0undt3ch/pre-commit-hooks
     rev: vX.Y.Z
@@ -230,6 +231,11 @@ repos:
 ```
 
 Then run `prek install` again. `prek install -t post-commit` also works.
+
+`default_stages: [pre-commit]` keeps your other hooks at the pre-commit stage.
+Hooks that set no `stages` otherwise run at every installed stage, so each
+commit prints a second block of `(no files to check) Skipped` lines from the
+post-commit run. `auto-push` sets its own stage, so this doesn't affect it.
 
 It never force-pushes. It skips the commit, with a note, when:
 

@@ -99,6 +99,18 @@ def test_sqruff_fix_fixes_sql(tmp_path: Path) -> None:
     assert sql.read_text() == (_FILES / "clean.sql").read_text()
 
 
+@pytest.mark.skip_if_binaries_missing("sqruff")
+def test_sqruff_fix_fails_on_unfixable_sql(tmp_path: Path) -> None:
+    unfixable = "select 1 as x\nfrom t where a=1 and\n"
+    sql = tmp_path / "query.sql"
+    sql.write_text(unfixable)
+    result = run_tool("sqruff", "fix", str(sql))
+    output = result.stdout + result.stderr
+    assert result.returncode == 1, output
+    assert "Unparsable section" in output, output
+    assert sql.read_text() == unfixable
+
+
 def test_run_tool_exit_zero_skips_when_tool_truly_missing() -> None:
     # Sanity: --exit-zero path against a guaranteed-missing tool still exits 0.
     # No real tool is involved, so this runs unconditionally (no skip marker).

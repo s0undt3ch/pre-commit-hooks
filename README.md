@@ -192,8 +192,8 @@ mise use aqua:quarylabs/sqruff
 ```
 
 The same principle applies across all hooks: `ruff`, `typos`, `rumdl`, `shfmt`,
-`yamlfmt`, and `taplo` are binary tools managed via `mise` (add them to
-your `mise.toml`), while the Python tools `codespell`, `mypy`, `sqlfluff`, and
+`yamlfmt`, `taplo`, and `sqruff` are binary tools managed via `mise` (add them
+to your `mise.toml`), while the Python tools `codespell`, `mypy`, `sqlfluff`, and
 `yamllint` come from your own dependency group (e.g. `uv.lock`) — none of these
 hooks use `additional_dependencies`.
 

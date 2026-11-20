@@ -73,6 +73,30 @@ def test_sqlfluff_lint_passes_on_clean_sql() -> None:
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.skip_if_binaries_missing("sqruff")
+def test_sqruff_lint_passes_on_clean_sql() -> None:
+    result = run_tool("sqruff", "lint", str(_FILES / "clean.sql"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skip_if_binaries_missing("sqruff")
+def test_sqruff_lint_fails_without_changing_dirty_sql(tmp_path: Path) -> None:
+    sql = tmp_path / "query.sql"
+    sql.write_text("select 1  as the_answer\n")
+    result = run_tool("sqruff", "lint", str(sql))
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert sql.read_text() == "select 1  as the_answer\n"
+
+
+@pytest.mark.skip_if_binaries_missing("sqruff")
+def test_sqruff_fix_fixes_sql(tmp_path: Path) -> None:
+    sql = tmp_path / "query.sql"
+    sql.write_text("select 1  as the_answer\n")
+    result = run_tool("sqruff", "fix", str(sql))
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert sql.read_text() == (_FILES / "clean.sql").read_text()
+
+
 def test_run_tool_exit_zero_skips_when_tool_truly_missing() -> None:
     # Sanity: --exit-zero path against a guaranteed-missing tool still exits 0.
     # No real tool is involved, so this runs unconditionally (no skip marker).

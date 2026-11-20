@@ -42,6 +42,8 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 | `uv-lock` | `uv` | Keep uv.lock in sync with pyproject |
 | `sqlfluff-lint` | `sqlfluff` | Lint SQL files |
 | `sqlfluff-fix` | `sqlfluff` | Auto-fix SQL lint errors |
+| `sqruff-lint` | `sqruff` | Lint SQL files (sqruff) |
+| `sqruff-fix` | `sqruff` | Auto-fix SQL lint errors (sqruff) |
 | `yamllint` | `yamllint` | Lint YAML files |
 | `yamlfmt` | `yamlfmt` | Format YAML files |
 | `taplo-lint` | `taplo` | Lint TOML files |
@@ -173,6 +175,19 @@ which keeps a single source of truth:
 ```yaml
       - id: sqlfluff-lint
       - id: sqlfluff-fix
+```
+
+`sqruff-lint` / `sqruff-fix` run the `sqruff` binary instead, a Rust SQL
+linter modelled on sqlfluff, configured from a `.sqruff` file. sqruff is not in
+mise's short-name registry, so install it through aqua:
+
+```bash
+mise use aqua:quarylabs/sqruff
+```
+
+```yaml
+      - id: sqruff-lint
+      - id: sqruff-fix
 ```
 
 The same principle applies across all hooks: `ruff`, `typos`, `rumdl`, `shfmt`,

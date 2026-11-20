@@ -178,8 +178,9 @@ which keeps a single source of truth:
 ```
 
 `sqruff-lint` / `sqruff-fix` run the `sqruff` binary instead, a Rust SQL
-linter modelled on sqlfluff, configured from a `.sqruff` file. sqruff is not in
-mise's short-name registry, so install it through aqua:
+linter modelled on sqlfluff. It reads its settings from a `.sqruff` file, or
+from an existing `.sqlfluff` file. sqruff is not in mise's short-name registry,
+so install it through aqua:
 
 ```bash
 mise use aqua:quarylabs/sqruff

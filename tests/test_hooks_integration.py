@@ -84,7 +84,9 @@ def test_sqruff_lint_fails_without_changing_dirty_sql(tmp_path: Path) -> None:
     sql = tmp_path / "query.sql"
     sql.write_text("select 1  as the_answer\n")
     result = run_tool("sqruff", "lint", str(sql))
-    assert result.returncode == 1, result.stdout + result.stderr
+    output = result.stdout + result.stderr
+    assert result.returncode == 1, output
+    assert "LT01" in output, output
     assert sql.read_text() == "select 1  as the_answer\n"
 
 

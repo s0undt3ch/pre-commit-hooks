@@ -96,11 +96,12 @@ def test_sqruff_fix_fixes_sql(tmp_path: Path) -> None:
     sql.write_text("select 1  as the_answer\n")
     result = run_tool("sqruff", "fix", str(sql))
     assert result.returncode == 0, result.stdout + result.stderr
-    assert sql.read_text() == (_FILES / "clean.sql").read_text()
+    assert sql.read_text() == "select 1 as the_answer\n"
 
 
 @pytest.mark.skip_if_binaries_missing("sqruff")
 def test_sqruff_fix_fails_on_unfixable_sql(tmp_path: Path) -> None:
+    # The trailing `and` is a parse error, which sqruff cannot fix.
     unfixable = "select 1 as x\nfrom t where a=1 and\n"
     sql = tmp_path / "query.sql"
     sql.write_text(unfixable)

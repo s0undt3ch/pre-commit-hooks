@@ -159,7 +159,7 @@ gentler one with `args: [--profile=correctness]`, or set `profile:` in
         args: [--profile=correctness]
 ```
 
-## 6. sqlfluff (and the "no `additional_dependencies`" rule)
+## 6. sqlfluff and sqruff (and the "no `additional_dependencies`" rule)
 
 `sqlfluff-lint` / `sqlfluff-fix` run the `sqlfluff` already on your PATH. Unlike
 the upstream `sqlfluff/sqlfluff` hooks, **there is no `additional_dependencies`**

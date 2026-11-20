@@ -76,6 +76,22 @@
   types: [sql]
   require_serial: true
 
+- id: sqruff-lint
+  name: sqruff lint
+  description: Lints SQL files with sqruff without changing them
+  entry: hooks/run-tool.sh sqruff lint
+  language: script
+  types: [sql]
+  require_serial: true
+
+- id: sqruff-fix
+  name: sqruff fix
+  description: Fixes SQL lint errors in place with sqruff, then reports what it could not fix
+  entry: hooks/run-tool.sh sqruff fix
+  language: script
+  types: [sql]
+  require_serial: true
+
 - id: system-tool
   name: Run a system tool
   description: 'Run any PATH-installed tool via run-tool.sh (tool + args supplied by the consumer; set pass_filenames: false for tools that manage their own file selection)'

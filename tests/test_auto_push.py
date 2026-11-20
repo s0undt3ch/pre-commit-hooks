@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
 from pathlib import Path
 
@@ -11,7 +10,7 @@ import pytest
 
 _AUTO_PUSH = Path(__file__).resolve().parents[1] / "hooks" / "auto-push.sh"
 
-pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="git not on PATH")
+pytestmark = pytest.mark.skip_if_binaries_missing("git")
 
 
 @pytest.fixture
@@ -228,10 +227,7 @@ def test_pushes_branch_with_pipe_in_name(clone: Path, remote: Path) -> None:
     assert remote_head(remote, "a|b") == sha
 
 
-@pytest.mark.skipif(
-    shutil.which("timeout") is None and shutil.which("gtimeout") is None,
-    reason="neither timeout nor gtimeout on PATH",
-)
+@pytest.mark.skip_if_binaries_missing("timeout", "gtimeout", check_all=False)
 def test_push_times_out(clone: Path, tmp_path: Path) -> None:
     hang = tmp_path / "hang.sh"
     hang.write_text("#!/bin/sh\nexec sleep 30\n")

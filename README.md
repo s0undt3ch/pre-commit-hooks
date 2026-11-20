@@ -42,6 +42,8 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 | `uv-lock` | `uv` | Keep uv.lock in sync with pyproject |
 | `sqlfluff-lint` | `sqlfluff` | Lint SQL files |
 | `sqlfluff-fix` | `sqlfluff` | Auto-fix SQL lint errors |
+| `sqruff-lint` | `sqruff` | Lint SQL files (sqruff) |
+| `sqruff-fix` | `sqruff` | Auto-fix SQL lint errors (sqruff) |
 | `yamllint` | `yamllint` | Lint YAML files |
 | `yamlfmt` | `yamlfmt` | Format YAML files |
 | `taplo-lint` | `taplo` | Lint TOML files |
@@ -157,7 +159,7 @@ gentler one with `args: [--profile=correctness]`, or set `profile:` in
         args: [--profile=correctness]
 ```
 
-## 6. sqlfluff (and the "no `additional_dependencies`" rule)
+## 6. sqlfluff and sqruff (and the "no `additional_dependencies`" rule)
 
 `sqlfluff-lint` / `sqlfluff-fix` run the `sqlfluff` already on your PATH. Unlike
 the upstream `sqlfluff/sqlfluff` hooks, **there is no `additional_dependencies`**
@@ -175,9 +177,24 @@ which keeps a single source of truth:
       - id: sqlfluff-fix
 ```
 
+`sqruff-lint` / `sqruff-fix` run the `sqruff` binary instead, a Rust SQL
+linter modelled on sqlfluff. It reads its settings from a `.sqruff` file, or
+from an existing `.sqlfluff` file. `sqruff-fix` needs sqruff 0.27.0 or later.
+Older versions stop to ask for confirmation and crash when run from a hook.
+sqruff is not in mise's short-name registry, so install it through aqua:
+
+```bash
+mise use aqua:quarylabs/sqruff
+```
+
+```yaml
+      - id: sqruff-lint
+      - id: sqruff-fix
+```
+
 The same principle applies across all hooks: `ruff`, `typos`, `rumdl`, `shfmt`,
-`yamlfmt`, and `taplo` are binary tools managed via `mise` (add them to
-your `mise.toml`), while the Python tools `codespell`, `mypy`, `sqlfluff`, and
+`yamlfmt`, `taplo`, and `sqruff` are binary tools managed via `mise` (add them
+to your `mise.toml`), while the Python tools `codespell`, `mypy`, `sqlfluff`, and
 `yamllint` come from your own dependency group (e.g. `uv.lock`) — none of these
 hooks use `additional_dependencies`.
 

@@ -37,9 +37,11 @@ Read README.md for what this repo is and how the hooks work.
   `actions/checkout` step sets `persist-credentials: false`.
 - Renovate bumps the action pins and the tools in `mise.toml` weekly. Bump one by
   hand only when it is broken.
-- `pin-github-actions` fails when a floating tag such as `v5` moves to a new
-  commit. Before updating the pin, confirm the tag's new target is a real
-  upstream release (`gh api repos/<owner>/<repo>/git/ref/tags/<tag>`).
+- Pin each action to a commit SHA with an exact release tag in the comment, such
+  as `# v5.2.10`, never a tag that moves, such as `# v5`. `pin-github-actions`
+  fails when a pinned tag points at a different commit. Before updating the
+  pin, confirm the tag's new target is a real upstream release
+  (`gh api repos/<owner>/<repo>/git/ref/tags/<tag>`).
 - Keep a `workflow = "..."` option that `mise use` writes to a tool in
   `mise.toml`. It pins which upstream workflow must have signed the release.
 

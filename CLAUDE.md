@@ -19,8 +19,10 @@ Read README.md for what this repo is and how the hooks work.
    `entry: hooks/run-tool.sh <tool> [default args]` and `language: script`. Copy
    the `files:` and `types:` patterns from the tool's upstream hook rather than
    inventing them.
-2. Pin the tool for this repo's tests. Binary tools go in `mise.toml`. Pure-Python
-   tools go in the `dev` group of `pyproject.toml`, then run `uv lock`.
+2. Pin the tool for this repo's tests. Binary tools go in `mise.toml`, then run
+   `mise lock`, because CI installs with `--locked` and fails on a tool missing
+   from `mise.lock`. Pure-Python tools go in the `dev` group of `pyproject.toml`,
+   then run `uv lock`.
 3. Add a clean fixture to `tests/files/` and an integration test to
    `tests/test_hooks_integration.py`. Skip the test when the tool isn't on `PATH`.
 4. Add a row to the README hook table. Add a README section if the hook needs

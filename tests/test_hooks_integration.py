@@ -12,6 +12,7 @@ import pytest
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _RUN_TOOL = _REPO_ROOT / "hooks" / "run-tool.sh"
 _FILES = _REPO_ROOT / "tests" / "files"
+_DIRTY_JS = "const  answer = 42\nexport default answer\n"
 
 
 def run_tool(*args: str) -> subprocess.CompletedProcess[str]:
@@ -196,16 +197,18 @@ def test_biome_ci_passes_on_clean_js() -> None:
 @pytest.mark.skip_if_binaries_missing("biome")
 def test_biome_ci_fails_without_changing_dirty_js(tmp_path: Path) -> None:
     js = tmp_path / "answer.js"
-    js.write_text("const  answer = 42\nexport default answer\n")
+    js.write_text(_DIRTY_JS)
     result = run_tool("biome", "ci", str(js))
-    assert result.returncode == 1, result.stdout + result.stderr
-    assert js.read_text() == "const  answer = 42\nexport default answer\n"
+    output = result.stdout + result.stderr
+    assert result.returncode == 1, output
+    assert "File content differs from formatting output" in output, output
+    assert js.read_text() == _DIRTY_JS
 
 
 @pytest.mark.skip_if_binaries_missing("biome")
 def test_biome_check_write_fixes_js(tmp_path: Path) -> None:
     js = tmp_path / "answer.js"
-    js.write_text("const  answer = 42\nexport default answer\n")
+    js.write_text(_DIRTY_JS)
     result = run_tool("biome", "check", "--write", str(js))
     assert result.returncode == 0, result.stdout + result.stderr
     assert js.read_text() == (_FILES / "clean.js").read_text()

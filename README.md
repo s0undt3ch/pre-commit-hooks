@@ -206,7 +206,12 @@ The same principle applies across all hooks: `ruff`, `typos`, `rumdl`, `shfmt`,
 
 The biome hooks run the `biome` binary (`mise use biome`) and read your
 `biome.json`. They cover the same file types as the upstream
-`biomejs/pre-commit` hooks and skip files biome cannot handle.
+`biomejs/pre-commit` hooks. `--files-ignore-unknown=true` skips files biome
+cannot handle, and `--no-errors-on-unmatched` stops the hook failing when
+`biome.json` ignores every staged file.
+
+Those file types include Markdown and YAML. If you already format them with
+`rumdl-fmt` or `yamlfmt`, narrow the biome hook with your own `files:`.
 
 Pick one: `biome-check` locally, or `biome-ci` where nothing may change files.
 `biome-check` already does what `biome-format` and `biome-lint` do, so don't
@@ -214,6 +219,7 @@ combine them with it.
 
 ```yaml
       - id: biome-check
+        files: '\.(jsx?|tsx?|jsonc?|css)$'
 ```
 
 ## 8. semgrep (authentication required)

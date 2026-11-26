@@ -48,6 +48,10 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 | `yamlfmt` | `yamlfmt` | Format YAML files |
 | `taplo-lint` | `taplo` | Lint TOML files |
 | `taplo-fmt` | `taplo` | Format TOML files (write in place) |
+| `biome-check` | `biome` | Format, lint and sort imports, writing safe fixes (Biome) |
+| `biome-ci` | `biome` | Check format, lint and imports without changing files (Biome) |
+| `biome-format` | `biome` | Format files in place (Biome) |
+| `biome-lint` | `biome` | Lint files, writing safe fixes (Biome) |
 | `semgrep-ci` | `semgrep` | SAST scan of staged diff (requires `semgrep login`) |
 | `semgrep-scan` | `semgrep` | SAST scan of changed files (requires `semgrep login`) |
 | `auto-push` | `git` | Push each new commit to its upstream (post-commit) |
@@ -193,12 +197,32 @@ mise use aqua:quarylabs/sqruff
 ```
 
 The same principle applies across all hooks: `ruff`, `typos`, `rumdl`, `shfmt`,
-`yamlfmt`, `taplo`, and `sqruff` are binary tools managed via `mise` (add them
-to your `mise.toml`), while the Python tools `codespell`, `mypy`, `sqlfluff`, and
-`yamllint` come from your own dependency group (e.g. `uv.lock`) — none of these
-hooks use `additional_dependencies`.
+`yamlfmt`, `taplo`, `sqruff`, and `biome` are binary tools managed via `mise`
+(add them to your `mise.toml`), while the Python tools `codespell`, `mypy`,
+`sqlfluff`, and `yamllint` come from your own dependency group (e.g. `uv.lock`)
+— none of these hooks use `additional_dependencies`.
 
-## 7. semgrep (authentication required)
+## 7. biome
+
+The biome hooks run the `biome` binary (`mise use biome`) and read your
+`biome.json`. They cover the same file types as the upstream
+`biomejs/pre-commit` hooks. `--files-ignore-unknown=true` skips files biome
+cannot handle, and `--no-errors-on-unmatched` stops the hook failing when
+`biome.json` ignores every staged file.
+
+Those file types include Markdown and YAML. If you already format them with
+`rumdl-fmt` or `yamlfmt`, narrow the biome hook with your own `files:`.
+
+Pick one: `biome-check` locally, or `biome-ci` where nothing may change files.
+`biome-check` already does what `biome-format` and `biome-lint` do, so don't
+combine them with it.
+
+```yaml
+      - id: biome-check
+        files: '\.(jsx?|tsx?|jsonc?|css)$'
+```
+
+## 8. semgrep (authentication required)
 
 The semgrep hooks use a dedicated wrapper (`hooks/run-semgrep.sh`) instead of
 `run-tool.sh`. Unlike other tools, semgrep requires you to be logged in to
@@ -230,7 +254,7 @@ semgrep login
 
 Or set `SEMGREP_APP_TOKEN` in your environment for non-interactive / CI use.
 
-## 8. auto-push (post-commit)
+## 9. auto-push (post-commit)
 
 `auto-push` runs after each commit and pushes it to the current branch's
 upstream. It runs at the `post-commit` stage, so git won't run it until you

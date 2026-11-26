@@ -17,6 +17,7 @@ yamlfmt = "0.21.0"
 taplo = "0.10.0"
 # sqruff is not in mise's short-name registry, so it needs the aqua backend.
 "aqua:quarylabs/sqruff" = "0.44.0"
+biome = "2.6.9"
 # NOTE: sqlfluff/codespell/mypy/yamllint are NOT here — they're pure-Python tools in the uv dev group
 # (see pyproject.toml), installed only for the hook integration tests.
 

@@ -185,3 +185,27 @@ def test_taplo_lint_passes_on_clean_toml() -> None:
 def test_taplo_fmt_check_passes_on_clean_toml() -> None:
     result = run_tool("taplo", "fmt", "--check", str(_FILES / "clean.toml"))
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skip_if_binaries_missing("biome")
+def test_biome_ci_passes_on_clean_js() -> None:
+    result = run_tool("biome", "ci", str(_FILES / "clean.js"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skip_if_binaries_missing("biome")
+def test_biome_ci_fails_without_changing_dirty_js(tmp_path: Path) -> None:
+    js = tmp_path / "answer.js"
+    js.write_text("const  answer = 42\nexport default answer\n")
+    result = run_tool("biome", "ci", str(js))
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert js.read_text() == "const  answer = 42\nexport default answer\n"
+
+
+@pytest.mark.skip_if_binaries_missing("biome")
+def test_biome_check_write_fixes_js(tmp_path: Path) -> None:
+    js = tmp_path / "answer.js"
+    js.write_text("const  answer = 42\nexport default answer\n")
+    result = run_tool("biome", "check", "--write", str(js))
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert js.read_text() == (_FILES / "clean.js").read_text()

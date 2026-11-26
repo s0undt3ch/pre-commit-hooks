@@ -65,7 +65,9 @@ the GitHub release with auto-generated notes.
   - minor: new hooks or options, and nothing removed or renamed;
   - major: a hook id removed or renamed, or a default changed in a way that
     breaks existing configs.
+
 - Release from an up-to-date `main` with a clean working tree.
+
 - Use a signed, annotated tag, never a lightweight one:
 
   ```bash
@@ -77,6 +79,7 @@ the GitHub release with auto-generated notes.
   The signature records who cut the release and stops anyone repointing the tag
   unnoticed. Tags up to and including `v1.4.0` are lightweight. Leave them
   as they are, because consumers already pin them.
+
 - After pushing, check that the `Release` workflow run succeeded and the
   release exists:
   `gh release view vX.Y.Z --repo s0undt3ch/pre-commit-hooks`.

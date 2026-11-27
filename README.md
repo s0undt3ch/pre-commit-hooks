@@ -52,6 +52,7 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 | `biome-ci` | `biome` | Check format, lint and imports without changing files (Biome) |
 | `biome-format` | `biome` | Format files in place (Biome) |
 | `biome-lint` | `biome` | Lint files, writing safe fixes (Biome) |
+| `adrs-doctor` | `adrs` | Check ADR numbering, duplicates, links and required sections |
 | `semgrep-ci` | `semgrep` | SAST scan of staged diff (requires `semgrep login`) |
 | `semgrep-scan` | `semgrep` | SAST scan of changed files (requires `semgrep login`) |
 | `auto-push` | `git` | Push each new commit to its upstream (post-commit) |
@@ -197,7 +198,7 @@ mise use aqua:quarylabs/sqruff
 ```
 
 The same principle applies across all hooks: `ruff`, `typos`, `rumdl`, `shfmt`,
-`yamlfmt`, `taplo`, `sqruff`, and `biome` are binary tools managed via `mise`
+`yamlfmt`, `taplo`, `sqruff`, `biome`, and `adrs` are binary tools managed via `mise`
 (add them to your `mise.toml`), while the Python tools `codespell`, `mypy`,
 `sqlfluff`, and `yamllint` come from your own dependency group (e.g. `uv.lock`)
 — none of these hooks use `additional_dependencies`.
@@ -222,7 +223,28 @@ combine them with it.
         files: '\.(jsx?|tsx?|jsonc?|css)$'
 ```
 
-## 8. semgrep (authentication required)
+## 8. adrs doctor
+
+`adrs-doctor` runs `adrs doctor` from
+[adrs](https://github.com/joshrotenberg/adrs) to check ADR numbering,
+duplicates, links and required sections. It checks the whole ADR directory
+whenever a Markdown file changes. It fails in a repo with no ADR directory, so
+run `adrs init` first. `adrs` isn't in mise's registry, so install it with the
+`github` backend:
+
+```bash
+mise use github:joshrotenberg/adrs
+```
+
+Warnings don't fail the hook. To fail on them too, pass `--warnings-as-errors`
+or set `[doctor].warnings_as_errors` in `adrs.toml`:
+
+```yaml
+      - id: adrs-doctor
+        args: [--warnings-as-errors]
+```
+
+## 9. semgrep (authentication required)
 
 The semgrep hooks use a dedicated wrapper (`hooks/run-semgrep.sh`) instead of
 `run-tool.sh`. Unlike other tools, semgrep requires you to be logged in to
@@ -254,7 +276,7 @@ semgrep login
 
 Or set `SEMGREP_APP_TOKEN` in your environment for non-interactive / CI use.
 
-## 9. auto-push (post-commit)
+## 10. auto-push (post-commit)
 
 `auto-push` runs after each commit and pushes it to the current branch's
 upstream. It runs at the `post-commit` stage, so git won't run it until you

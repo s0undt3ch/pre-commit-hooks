@@ -4,6 +4,7 @@ just skips that test; CI installs every tool via mise and runs them all."""
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -15,10 +16,10 @@ _FILES = _REPO_ROOT / "tests" / "files"
 _DIRTY_JS = "const  answer = 42\nexport default answer\n"
 
 
-def run_tool(*args: str) -> subprocess.CompletedProcess[str]:
+def run_tool(*args: str, cwd: Path = _REPO_ROOT) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [str(_RUN_TOOL), *args],
-        cwd=_REPO_ROOT,
+        cwd=cwd,
         capture_output=True,
         text=True,
         check=False,
@@ -212,3 +213,22 @@ def test_biome_check_write_fixes_js(tmp_path: Path) -> None:
     result = run_tool("biome", "check", "--write", str(js))
     assert result.returncode == 0, result.stdout + result.stderr
     assert js.read_text() == (_FILES / "clean.js").read_text()
+
+
+@pytest.mark.skip_if_binaries_missing("adrs")
+def test_adrs_doctor_passes_on_clean_repo() -> None:
+    result = run_tool("adrs", "doctor", cwd=_FILES / "adrs")
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.skip_if_binaries_missing("adrs")
+def test_adrs_doctor_fails_on_duplicate_number(tmp_path: Path) -> None:
+    shutil.copytree(_FILES / "adrs", tmp_path, dirs_exist_ok=True)
+    adr_dir = tmp_path / "doc" / "adr"
+    shutil.copy(
+        adr_dir / "0001-record-architecture-decisions.md", adr_dir / "0001-duplicate.md"
+    )
+    result = run_tool("adrs", "doctor", "-C", str(tmp_path))
+    output = result.stdout + result.stderr
+    assert result.returncode == 1, output
+    assert "Duplicate ADR number 1" in output, output

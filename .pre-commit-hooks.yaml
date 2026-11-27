@@ -225,6 +225,14 @@
   files: '\.(jsx?|tsx?|c(js|ts)|m(js|ts)|d\.(ts|cts|mts)|jsonc?|css|svelte|vue|astro|graphql|gql|md|yml|yaml)$'
   require_serial: true
 
+- id: adrs-doctor
+  name: adrs doctor
+  description: Check ADR repository health (naming, numbering, links, superseded status) with adrs
+  entry: hooks/run-tool.sh adrs doctor
+  language: script
+  files: \.md$
+  pass_filenames: false
+
 - id: semgrep-ci
   name: semgrep ci
   description: >-

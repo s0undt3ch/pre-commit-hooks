@@ -227,7 +227,7 @@
 
 - id: adrs-doctor
   name: adrs doctor
-  description: Check ADR repository health (naming, numbering, links, superseded status) with adrs
+  description: Check ADR numbering, duplicates, links and required sections with adrs doctor
   entry: hooks/run-tool.sh adrs doctor
   language: script
   files: \.md$

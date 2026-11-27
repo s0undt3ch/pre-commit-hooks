@@ -52,7 +52,7 @@ tool in `mise.toml` and the hook, CI, and local dev all move together.
 | `biome-ci` | `biome` | Check format, lint and imports without changing files (Biome) |
 | `biome-format` | `biome` | Format files in place (Biome) |
 | `biome-lint` | `biome` | Lint files, writing safe fixes (Biome) |
-| `adrs-doctor` | `adrs` | Check ADR repository health (numbering, links, status) |
+| `adrs-doctor` | `adrs` | Check ADR numbering, duplicates, links and required sections |
 | `semgrep-ci` | `semgrep` | SAST scan of staged diff (requires `semgrep login`) |
 | `semgrep-scan` | `semgrep` | SAST scan of changed files (requires `semgrep login`) |
 | `auto-push` | `git` | Push each new commit to its upstream (post-commit) |
@@ -226,11 +226,11 @@ combine them with it.
 ## 8. adrs doctor
 
 `adrs-doctor` runs `adrs doctor` from
-[adrs](https://github.com/joshrotenberg/adrs) to check your ADRs. It checks
-numbering, duplicates, broken links and required sections. It runs when a
-Markdown file changes and checks the whole ADR directory, so it takes no
-filenames. `adrs` isn't in mise's registry, so install it with the `github`
-backend:
+[adrs](https://github.com/joshrotenberg/adrs) to check ADR numbering,
+duplicates, links and required sections. It checks the whole ADR directory
+whenever a Markdown file changes. It fails in a repo with no ADR directory, so
+run `adrs init` first. `adrs` isn't in mise's registry, so install it with the
+`github` backend:
 
 ```bash
 mise use github:joshrotenberg/adrs

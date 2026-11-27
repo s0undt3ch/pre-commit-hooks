@@ -18,6 +18,7 @@ taplo = "0.10.0"
 # sqruff is not in mise's short-name registry, so it needs the aqua backend.
 "aqua:quarylabs/sqruff" = "0.44.0"
 biome = "2.6.9"
+# adrs is in neither mise's registry nor aqua's, so it needs the github backend.
 "github:joshrotenberg/adrs" = "0.13.0"
 # NOTE: sqlfluff/codespell/mypy/yamllint are NOT here — they're pure-Python tools in the uv dev group
 # (see pyproject.toml), installed only for the hook integration tests.

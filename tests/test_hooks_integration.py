@@ -16,10 +16,10 @@ _FILES = _REPO_ROOT / "tests" / "files"
 _DIRTY_JS = "const  answer = 42\nexport default answer\n"
 
 
-def run_tool(*args: str) -> subprocess.CompletedProcess[str]:
+def run_tool(*args: str, cwd: Path = _REPO_ROOT) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [str(_RUN_TOOL), *args],
-        cwd=_REPO_ROOT,
+        cwd=cwd,
         capture_output=True,
         text=True,
         check=False,
@@ -217,7 +217,7 @@ def test_biome_check_write_fixes_js(tmp_path: Path) -> None:
 
 @pytest.mark.skip_if_binaries_missing("adrs")
 def test_adrs_doctor_passes_on_clean_repo() -> None:
-    result = run_tool("adrs", "doctor", "-C", str(_FILES / "adrs"))
+    result = run_tool("adrs", "doctor", cwd=_FILES / "adrs")
     assert result.returncode == 0, result.stdout + result.stderr
 
 
